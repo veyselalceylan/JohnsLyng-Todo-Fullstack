@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Todo } from '../../models/todo.model';
+import { Todo } from '../../../models/todo.model';
 
 export interface PaginationParams {
   pageNumber: number;

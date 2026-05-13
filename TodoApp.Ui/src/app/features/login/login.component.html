@@ -1,0 +1,49 @@
+<div
+  class="flex align-items-center justify-content-center min-h-screen bg-layout-background"
+  style="min-height: 100vh"
+>
+  <p-card class="shadow-4 border-round-xl" [style]="{ width: '100%', maxWidth: '400px' }">
+    <div class="flex flex-column gap-4 p-2">
+      <div class="flex align-items-center gap-3 mx-auto">
+        <img
+          src="logo.png"
+          alt="Todo App Logo"
+          style="width: 80px; height: 80px; object-fit: contain"
+        />
+        <div class="flex flex-column">
+          <h1 class="m-0 text-3xl font-bold text-900">Welcome</h1>
+          <span class="text-secondary font-medium text-lg">Todo App</span>
+        </div>
+      </div>
+
+      <div class="flex flex-column gap-2">
+        <p-iftalabel>
+          <input
+            pInputText
+            id="username"
+            [(ngModel)]="username"
+            placeholder="e.g., John Doe"
+            autocomplete="off"
+            class="w-full"
+          />
+          <label for="username">Username</label>
+        </p-iftalabel>
+
+        <div class="flex align-items-center gap-2 mt-1 ml-1 text-500">
+          <i class="pi pi-info-circle"></i>
+          <small>We'll use your name to personalize the app.</small>
+        </div>
+      </div>
+
+      <p-button
+        label="Get Started"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        (onClick)="onLogin()"
+        [disabled]="!username.trim()"
+        styleClass="w-full p-button-lg shadow-2"
+      >
+      </p-button>
+    </div>
+  </p-card>
+</div>

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Todo } from '../../models/todo.model';
+import { Todo } from '../../../models/todo.model';
 import { ITodoService, PaginationParams, TodoResponse } from './todo-service.interface';
 
 @Injectable({

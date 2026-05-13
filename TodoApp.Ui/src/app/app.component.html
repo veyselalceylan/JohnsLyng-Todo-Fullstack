@@ -1,0 +1,12 @@
+@if (authService.currentUser()) {
+  <div class="main-container p-4">
+      <!-- Yeni oluşturduğumuz component -->
+      <app-header></app-header>
+
+      <p-card styleClass="shadow-2">
+          <router-outlet></router-outlet>
+      </p-card>
+  </div>
+} @else {
+  <router-outlet></router-outlet>
+}
