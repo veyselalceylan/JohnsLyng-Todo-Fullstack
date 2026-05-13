@@ -1,15 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Api.Data;
 using TodoApp.Api.Models;
 using TodoApp.Api.Models.DTOs;
-
-=======
-using TodoApp.Api.Data;
-using TodoApp.Api.Models;
-using Microsoft.EntityFrameworkCore;
->>>>>>> origin/feature/backend-todo-controller
 
 namespace TodoApp.Api.Controllers;
 
@@ -24,12 +17,12 @@ public class TodosController : ControllerBase
         _context = context;
     }
 
-<<<<<<< HEAD
     [HttpGet]
     public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
     {
         var query = _context.Todos.AsQueryable();
 
+        // Sorting logic
         query = @params.sortBy?.ToLower() switch
         {
             "title" => @params.isDescending ? query.OrderByDescending(t => t.title) : query.OrderBy(t => t.title),
@@ -72,9 +65,9 @@ public class TodosController : ControllerBase
             CompletedCount = todos.Count(t => t.isCompleted),
             PendingCount = todos.Count(t => !t.isCompleted),
             ChartData = new List<int> {
-            todos.Count(t => t.isCompleted),
-            todos.Count(t => !t.isCompleted)
-        }
+                todos.Count(t => t.isCompleted),
+                todos.Count(t => !t.isCompleted)
+            }
         };
 
         return Ok(stats);
@@ -89,18 +82,11 @@ public class TodosController : ControllerBase
             return NotFound(new { message = $"{id} todo doesnt exist" });
         }
         return Ok(todo);
-=======
-   [HttpGet]
-    public async Task<ActionResult<IEnumerable<Todo>>> GetTodos()
-    {
-        return await _context.Todos.ToListAsync();
->>>>>>> origin/feature/backend-todo-controller
     }
 
     [HttpPost]
     public async Task<ActionResult<Todo>> CreateTodo(Todo todo)
     {
-<<<<<<< HEAD
         todo.id = Guid.NewGuid();
         _context.Todos.Add(todo);
         await _context.SaveChangesAsync();
@@ -114,29 +100,11 @@ public class TodosController : ControllerBase
         var todo = await _context.Todos.FindAsync(id);
         if (todo == null) return NotFound();
 
-=======
-        todo.Id = Guid.NewGuid();
-        _context.Todos.Add(todo);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetTodos), new { id = todo.Id}, todo);
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTodo(Guid id)
-    {
-        var todo = await _context.Todos.FindAsync(id);
-        if(todo == null)
-        {
-            return NotFound();
-        }
->>>>>>> origin/feature/backend-todo-controller
         _context.Todos.Remove(todo);
         await _context.SaveChangesAsync();
         return NoContent();
     }
 
-<<<<<<< HEAD
     [HttpDelete("bulk-delete")]
     public async Task<IActionResult> BulkDelete([FromBody] List<string> ids)
     {
@@ -161,38 +129,16 @@ public class TodosController : ControllerBase
         var existingTodo = await _context.Todos.FindAsync(id);
         if (existingTodo == null) return NotFound();
 
+        // Protect Id and CreatedAt from being modified
         todo.id = id;
-
         var entry = _context.Entry(existingTodo);
         entry.CurrentValues.SetValues(todo);
         entry.Property(x => x.id).IsModified = false;
         entry.Property(x => x.createdAt).IsModified = false;
+        
         existingTodo.updatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return Ok(existingTodo);
-=======
-    [HttpPut("{id}")]
-    public async Task<IActionResult>UpdateTodo(Guid id, Todo todo)
-    {
-        if(id != todo.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-        _context.Entry(todo).State = EntityState.Modified;
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if(!_context.Todos.Any(e => e.Id == id))
-            {
-                return NotFound();
-            }
-            throw;
-        }
-        return NoContent();
->>>>>>> origin/feature/backend-todo-controller
     }
 }

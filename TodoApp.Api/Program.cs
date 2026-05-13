@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Burayı koruyoruz, Angular bağlantısı için şart
+//Angular project CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
