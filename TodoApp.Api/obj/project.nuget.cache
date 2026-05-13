@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "qSVoVzQ8kfw=",
+  "success": true,
+  "projectFilePath": "/Users/veyselalceylan/Desktop/JLG-Todo-FullStack/TodoApp.Api/TodoApp.Api.csproj",
+  "expectedPackageFiles": [
+    "/Users/veyselalceylan/.nuget/packages/microsoft.aspnetcore.openapi/10.0.7/microsoft.aspnetcore.openapi.10.0.7.nupkg.sha512",
+    "/Users/veyselalceylan/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
