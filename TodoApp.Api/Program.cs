@@ -9,8 +9,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngular",
         policy => policy.WithOrigins("http://localhost:4200") // Angular'ın adresi
                         .AllowAnyMethod()
-                        .AllowAnyHeader())
-                        .WithExposedHeaders("X-Total-Count");
+                        .AllowAnyHeader()
+                        .WithExposedHeaders("X-Total-Count"));
 });
 builder.Services.AddDbContext<AppDbContext>(opt => 
     opt.UseInMemoryDatabase("TodoList"));
