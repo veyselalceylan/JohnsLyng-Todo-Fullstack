@@ -11,5 +11,5 @@ export const rootGuard: CanActivateFn = () => {
   } else {
     router.navigate(['/login']);
   }
-  return false; // Doğrudan boş sayfayı açmaması için false dönüp navigate ile yönlendiriyoruz
+  return false;
 };

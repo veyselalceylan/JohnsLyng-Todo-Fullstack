@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private router = inject(Router);
-  currentUser = signal<string | null>(localStorage.getItem('username'));
+  currentUser = signal<string | null>(typeof window !== 'undefined' ? localStorage.getItem('username') : null);
 
   login(name: string) {
     localStorage.setItem('username', name);

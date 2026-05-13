@@ -1,30 +1,20 @@
-import { Routes } from '@angular/router';
+import { Router, Routes } from '@angular/router';
 import { LoginComponent } from './features/login/login.component';
 import { TodoListComponent } from './features/todo/todo-list/todo-list.component';
 import { authGuard } from './core/guard/auth.guard';
-
+import { inject } from '@angular/core';
+import { AuthService } from './core/services/auth/auth.service';
 export const routes: Routes = [
-  {
-    path: '',
-    pathMatch: 'full',
-    redirectTo: 'todos' // Burası hatayı çözen kritik dokunuş
-  },
   { 
     path: 'login', 
-    component: LoginComponent 
+    component: LoginComponent, 
+    canActivate: [() => inject(AuthService).isLoggedIn() ? inject(Router).navigate(['/todos']) : true] 
   },
   { 
     path: 'todos', 
     component: TodoListComponent, 
-    canActivate: [authGuard] // Guard zaten giriş kontrolü yapıp login'e atacak
+    canActivate: [authGuard] 
   },
-  { 
-    path: 'add-todo', 
-    component: TodoListComponent, 
-    canActivate: [authGuard] // Guard zaten giriş kontrolü yapıp login'e atacak
-  },
-  { 
-    path: '**', 
-    redirectTo: 'todos' 
-  }
+  { path: '', redirectTo: 'todos', pathMatch: 'full' },
+  { path: '**', redirectTo: 'todos' }
 ];

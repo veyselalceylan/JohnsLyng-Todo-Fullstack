@@ -11,22 +11,47 @@ import { Todo } from '../../../../../models/todo.model';
 @Component({
   selector: '[app-todo-body]',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, CheckboxModule, TagModule, ButtonModule, TooltipModule],
-  templateUrl: './todo-body.component.html'
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    CheckboxModule,
+    TagModule,
+    ButtonModule,
+    TooltipModule,
+  ],
+  templateUrl: './todo-body.component.html',
 })
 export class TodoBodyComponent {
   @Input() todo!: Todo;
   @Input() deletingId: string | null = null;
-  
+
   @Output() toggle = new EventEmitter<Todo>();
   @Output() delete = new EventEmitter<string>();
+  @Output() edit = new EventEmitter<Todo>();
 
   getPrioritySeverity(priority: string): any {
     switch (priority?.toLowerCase()) {
-      case 'high': return 'danger';
-      case 'medium': return 'warning';
-      case 'low': return 'info';
-      default: return 'secondary';
+      case 'high':
+        return 'danger';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'info';
+      default:
+        return 'secondary';
     }
+  }
+  isToday(date: any): boolean {
+    if (!date) return false;
+    const deadline = new Date(date);
+    const today = new Date();
+
+    return (
+      deadline.getDate() === today.getDate() &&
+      deadline.getMonth() === today.getMonth() &&
+      deadline.getFullYear() === today.getFullYear() &&
+      !this.todo.isCompleted
+    );
   }
 }

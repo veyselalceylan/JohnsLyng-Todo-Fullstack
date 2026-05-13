@@ -10,7 +10,7 @@ import { environment } from '../../../../environment/environment';
 })
 export class TodoService implements ITodoService {
   private http = inject(HttpClient);
-private apiUrl = `${environment.apiUrl}/todos`;
+  private apiUrl = `${environment.apiUrl}/todos`;
 
   getTodos(params: PaginationParams): Observable<TodoResponse> {
     let httpParams = new HttpParams()
@@ -36,11 +36,13 @@ private apiUrl = `${environment.apiUrl}/todos`;
   updateTodo(id: string, todo: Partial<Todo>): Observable<Todo> {
     return this.http.put<Todo>(`${this.apiUrl}/${id}`, todo);
   }
-  
+
   deleteTodo(id: string): Observable<string> {
     return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
   }
   bulkDelete(ids: string[]): Observable<any> {
-  return this.http.delete(`${this.apiUrl}/bulk-delete`, { body: ids });
-}
+    return this.http.delete(`${this.apiUrl}/bulk-delete`, { body: ids });
+  }
+
+  
 }

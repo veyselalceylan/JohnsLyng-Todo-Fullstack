@@ -36,6 +36,7 @@
           [todo]="todo"
           [deletingId]="deletingId"
           [pSelectableRow]="todo"
+          (edit)="openDialog($event)"
           (toggle)="toggleComplete($event)"
           (delete)="deleteTodo($event)"
         ></tr>

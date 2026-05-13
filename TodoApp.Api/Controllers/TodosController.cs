@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TodoApp.Api.Data;
 using TodoApp.Api.Models;
-using Microsoft.EntityFrameworkCore;
+using TodoApp.Api.Models.DTOs;
+
 
 namespace TodoApp.Api.Controllers;
 
@@ -47,6 +49,30 @@ public class TodosController : ControllerBase
             totalPages = (int)Math.Ceiling(totalItems / (double)@params.pageSize),
             items = items
         });
+    }
+
+    [HttpGet("stats")]
+    public async Task<ActionResult<TodoStatsDto>> GetTodoStats([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        var start = startDate ?? DateTime.UtcNow.AddDays(-7);
+        var end = endDate ?? DateTime.UtcNow;
+
+        var todos = await _context.Todos
+            .Where(t => t.CreatedAt >= start && t.CreatedAt <= end)
+            .ToListAsync();
+
+        var stats = new TodoStatsDto
+        {
+            TotalCount = todos.Count,
+            CompletedCount = todos.Count(t => t.IsCompleted),
+            PendingCount = todos.Count(t => !t.IsCompleted),
+            ChartData = new List<int> {
+            todos.Count(t => t.IsCompleted),
+            todos.Count(t => !t.IsCompleted)
+        }
+        };
+
+        return Ok(stats);
     }
 
     [HttpGet("{id:guid}")]

@@ -38,7 +38,13 @@
 </td>
 <td class="text-secondary text-sm">
   @if (todo.deadline) {
-    <i class="pi pi-calendar mr-1 text-xs"></i>{{ todo.deadline | date: 'dd.MM.yyyy HH:mm' }}
+    <div class="flex align-items-center gap-1" [class.text-orange-500]="isToday(todo.deadline)">
+      <i [class]="isToday(todo.deadline) ? 'pi pi-exclamation-triangle' : 'pi pi-calendar'" 
+         class="text-xs"
+         [pTooltip]="isToday(todo.deadline) ? 'Due Today!' : ''">
+      </i>
+      <span>{{ todo.deadline | date: 'dd.MM.yyyy HH:mm' }}</span>
+    </div>
   } @else {
     <span class="text-400">-</span>
   }
@@ -55,7 +61,16 @@
   >
   </p-tag>
 </td>
-<td>
+<td class="flex">
+  <p-button
+    icon="pi pi-pencil"
+    [rounded]="true"
+    [text]="true"
+    severity="secondary"
+    (onClick)="edit.emit(todo)"
+    pTooltip="Edit Task"
+    tooltipPosition="bottom"
+  ></p-button>
   <p-button
     [icon]="deletingId === todo.id ? 'pi pi-spin pi-spinner' : 'pi pi-trash'"
     [disabled]="deletingId === todo.id"
