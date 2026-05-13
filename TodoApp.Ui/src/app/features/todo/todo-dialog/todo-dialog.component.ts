@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
@@ -26,38 +26,45 @@ import { Todo } from '../../../models/todo.model';
   templateUrl: './todo-dialog.component.html',
 })
 export class TodoDialogComponent implements OnInit {
-  // TodoList'ten (Parent) gelen veriler
-  @Input() todo: any = {};
-  @Input() isEditMode: boolean = false;
+  private ref = inject(DynamicDialogRef);
+  private config = inject(DynamicDialogConfig);
+  todo: any = {}; 
+  isEditMode: boolean = false;
 
-  // TodoList'e (Parent) gönderilecek olaylar
-  @Output() onSave = new EventEmitter<Todo>();
-  @Output() onCancel = new EventEmitter<void>();
-
-  // AutoComplete (Priority) için gerekli alanlar
   items: string[] = [];
   allPriorities: string[] = ['Low', 'Medium', 'High'];
 
   ngOnInit(): void {
-    // Backend'den gelen deadline string ise DatePicker'ın anlaması için Date nesnesine çeviriyoruz
+    if (this.config.data) {
+      this.todo = { ...this.config.data.todo };
+      this.isEditMode = this.config.data.isEditMode;
+    }
     if (this.todo && this.todo.deadline) {
       this.todo.deadline = new Date(this.todo.deadline);
     }
+
+    if (!this.isEditMode) {
+      this.todo = {
+        title: '',
+        description: '',
+        priority: 'Medium',
+        isCompleted: false,
+        deadline: null,
+      };
+    }
   }
 
-  /**
-   * AutoComplete (Priority) alanında arama yapıldığında tetiklenir
-   */
   search(event: any): void {
     const query = event.query.toLowerCase();
-    this.items = this.allPriorities.filter((p) => p.toLowerCase().includes(query));
+    this.items = this.allPriorities.filter((p) => 
+      p.toLowerCase().includes(query)
+    );
   }
 
   save(): void {
     if (!this.todo.title) return;
 
     let finalTodo: Todo;
-
     if (this.isEditMode) {
       finalTodo = { ...this.todo };
     } else {
@@ -66,10 +73,10 @@ export class TodoDialogComponent implements OnInit {
         isCompleted: false,
       };
     }
-    this.onSave.emit(finalTodo);
+    this.ref.close(finalTodo);
   }
 
   cancel(): void {
-    this.onCancel.emit();
+    this.ref.close();
   }
 }
