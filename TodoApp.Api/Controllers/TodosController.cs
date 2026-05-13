@@ -31,4 +31,40 @@ public class TodosController : ControllerBase
 
         return CreatedAtAction(nameof(GetTodos), new { id = todo.Id}, todo);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTodo(Guid id)
+    {
+        var todo = await _context.Todos.FindAsync(id);
+        if(todo == null)
+        {
+            return NotFound();
+        }
+        _context.Todos.Remove(todo);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult>UpdateTodo(Guid id, Todo todo)
+    {
+        if(id != todo.Id)
+        {
+            return BadRequest("ID mismatch");
+        }
+        _context.Entry(todo).State = EntityState.Modified;
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if(!_context.Todos.Any(e => e.Id == id))
+            {
+                return NotFound();
+            }
+            throw;
+        }
+        return NoContent();
+    }
 }
