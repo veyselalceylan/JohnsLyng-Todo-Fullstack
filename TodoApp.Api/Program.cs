@@ -4,6 +4,13 @@ using TodoApp.Api.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular",
+        policy => policy.WithOrigins("http://localhost:4200") // Angular'ın adresi
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
 builder.Services.AddDbContext<AppDbContext>(opt => 
     opt.UseInMemoryDatabase("TodoList"));
 
@@ -19,6 +26,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAngular");
 app.MapControllers(); 
 
 app.Run();
