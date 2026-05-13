@@ -16,10 +16,36 @@ public class TodosController : ControllerBase
         _context = context;
     }
 
-   [HttpGet]
-    public async Task<ActionResult<IEnumerable<Todo>>> GetTodos()
+    [HttpGet]
+    public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
     {
-        return await _context.Todos.ToListAsync();
+        var query = _context.Todos.AsQueryable();
+
+        query = @params.SortBy?.ToLower() switch
+        {
+            "title" => @params.IsDescending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
+            "iscompleted" => @params.IsDescending ? query.OrderByDescending(t => t.IsCompleted) : query.OrderBy(t => t.IsCompleted),
+            "updatedat" => @params.IsDescending ? query.OrderByDescending(t => t.UpdatedAt) : query.OrderBy(t => t.UpdatedAt),
+            _ => @params.IsDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt)
+        };
+
+        query = ((IOrderedQueryable<Todo>)query).ThenBy(t => t.Id);
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
+            .Skip((@params.PageNumber - 1) * @params.PageSize)
+            .Take(@params.PageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            TotalCount = totalItems,
+            @params.PageSize,
+            @params.PageNumber,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)@params.PageSize),
+            Items = items
+        });
     }
 
     [HttpPost]
@@ -29,14 +55,14 @@ public class TodosController : ControllerBase
         _context.Todos.Add(todo);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetTodos), new { id = todo.Id}, todo);
+        return CreatedAtAction(nameof(GetTodos), new { id = todo.Id }, todo);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTodo(Guid id)
     {
         var todo = await _context.Todos.FindAsync(id);
-        if(todo == null)
+        if (todo == null)
         {
             return NotFound();
         }
@@ -46,9 +72,9 @@ public class TodosController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult>UpdateTodo(Guid id, Todo todo)
+    public async Task<IActionResult> UpdateTodo(Guid id, Todo todo)
     {
-        if(id != todo.Id)
+        if (id != todo.Id)
         {
             return BadRequest("ID mismatch");
         }
@@ -59,7 +85,7 @@ public class TodosController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
-            if(!_context.Todos.Any(e => e.Id == id))
+            if (!_context.Todos.Any(e => e.Id == id))
             {
                 return NotFound();
             }
