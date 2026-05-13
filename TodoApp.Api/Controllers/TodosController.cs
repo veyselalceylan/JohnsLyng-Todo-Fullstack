@@ -17,36 +17,40 @@ public class TodosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
+  [HttpGet]
+public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
+{
+    var query = _context.Todos.AsQueryable();
+
+    query = @params.SortBy?.ToLower() switch
     {
-        var query = _context.Todos.AsQueryable();
+        "title" => @params.IsDescending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
+        "iscompleted" => @params.IsDescending ? query.OrderByDescending(t => t.IsCompleted) : query.OrderBy(t => t.IsCompleted),
+        "deadline" => @params.IsDescending ? query.OrderByDescending(t => t.Deadline) : query.OrderBy(t => t.Deadline),
+        "priority" => @params.IsDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
+        _ => @params.IsDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt)
+    };
 
-        query = @params.SortBy?.ToLower() switch
-        {
-            "title" => @params.IsDescending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
-            "iscompleted" => @params.IsDescending ? query.OrderByDescending(t => t.IsCompleted) : query.OrderBy(t => t.IsCompleted),
-            "updatedat" => @params.IsDescending ? query.OrderByDescending(t => t.UpdatedAt) : query.OrderBy(t => t.UpdatedAt),
-            _ => @params.IsDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt)
-        };
+    var orderedQuery = query is IOrderedQueryable<Todo> oq 
+        ? oq.ThenBy(t => t.Id) 
+        : query.OrderBy(t => t.Id);
 
-        query = ((IOrderedQueryable<Todo>)query).ThenBy(t => t.Id);
+    var totalItems = await orderedQuery.CountAsync();
 
-        var totalItems = await query.CountAsync();
+    var items = await orderedQuery
+        .Skip((@params.PageNumber - 1) * @params.PageSize)
+        .Take(@params.PageSize)
+        .ToListAsync();
 
-        var items = await query
-            .Skip((@params.PageNumber - 1) * @params.PageSize)
-            .Take(@params.PageSize)
-            .ToListAsync();
-
-        return Ok(new
-        {
-            TotalCount = totalItems,
-            @params.PageSize,
-            @params.PageNumber,
-            TotalPages = (int)Math.Ceiling(totalItems / (double)@params.PageSize),
-            Items = items
-        });
-    }
+    return Ok(new
+    {
+        TotalCount = totalItems,
+        @params.PageSize,
+        @params.PageNumber,
+        TotalPages = (int)Math.Ceiling(totalItems / (double)@params.PageSize),
+        Items = items
+    });
+}
 
     [HttpPost]
     public async Task<ActionResult<Todo>> CreateTodo(Todo todo)

@@ -8,5 +8,8 @@ public class Todo
     public bool IsCompleted { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; } 
+    
+    public DateTime? Deadline { get; set; } 
+    
     public string Priority { get; set; } = "Medium"; 
 }
