@@ -3,8 +3,9 @@ using TodoApp.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-opt.UseInMemoryDatabase("TodoList"));
+builder.Services.AddControllers();
+builder.Services.AddDbContext<AppDbContext>(opt => 
+    opt.UseInMemoryDatabase("TodoList"));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -16,8 +17,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpsRedirection();
 
-app.MapGet("/", ()=> "JLG Todo API is running!");
+app.UseHttpsRedirection();
+app.MapControllers(); 
 
 app.Run();
