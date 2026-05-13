@@ -66,12 +66,12 @@ export class TodoListComponent implements OnInit {
   loading: boolean = false;
   hasError: boolean = false;
   totalRecords: number = 0;
-  rows: number = 10;
+  rows: number = 5;
   deletingId: string | null = null;
   selectedTodos: Todo[] = [];
   currentParams: PaginationParams = {
     pageNumber: 1,
-    pageSize: 10,
+    pageSize: 5,
     sortBy: 'createdAt',
     isDescending: true,
   };

@@ -6,15 +6,20 @@
   </ng-template>
 
   <div class="card flex justify-content-center" style="height: 250px">
-    @if (data) {
-      <p-chart type="bar" [data]="data" [options]="options" style="width: 100%"></p-chart>
-    } @else {
-      <div class="flex flex-column align-items-center justify-content-center">
-        <i class="pi pi-spin pi-spinner text-2xl"></i>
-        <p>Refreshing Data...</p>
-      </div>
-    }
-  </div>
+  @if (data && (data.datasets[0].data[0] > 0 || data.datasets[0].data[1] > 0)) {
+    <p-chart type="bar" [data]="data" [options]="options" style="width: 100%"></p-chart>
+  } @else if (data) {
+    <div class="flex flex-column align-items-center justify-content-center w-full text-surface-400">
+      <i class="pi pi-database text-3xl mb-2"></i>
+      <p class="text-sm font-medium">No tasks found for selected range</p>
+    </div>
+  } @else {
+    <div class="flex flex-column align-items-center justify-content-center w-full">
+      <i class="pi pi-spin pi-spinner text-2xl mb-2"></i>
+      <p class="text-sm">Refreshing Data...</p>
+    </div>
+  }
+</div>
   <ng-template #footer>
   <div class="flex flex-column w-full gap-2">
     
@@ -43,7 +48,7 @@
       <p-button
         icon="pi pi-sync"
         label="Update"
-        [text]="true"
+        [outlined]="true"
         size="small"
         (click)="refreshChart()"
       />

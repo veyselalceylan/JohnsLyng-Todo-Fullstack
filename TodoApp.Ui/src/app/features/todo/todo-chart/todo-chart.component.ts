@@ -8,7 +8,15 @@ import { DatePicker, DatePickerModule } from 'primeng/datepicker';
 import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-todo-chart',
-  imports: [ChartModule, CommonModule, PanelModule, ButtonModule,DatePicker, DatePickerModule, FormsModule],
+  imports: [
+    ChartModule,
+    CommonModule,
+    PanelModule,
+    ButtonModule,
+    DatePicker,
+    DatePickerModule,
+    FormsModule,
+  ],
   templateUrl: './todo-chart.component.html',
   styleUrl: './todo-chart.component.css',
 })
@@ -24,7 +32,18 @@ export class TodoChartComponent {
     this.initOptions();
   }
   initOptions() {
-    this.options = { cutout: '70%', maintainAspectRatio: false };
+    this.options = {
+      cutout: '70%',
+      maintainAspectRatio: false,
+      legend: {
+        display: false,
+      },
+      plugins: {
+        legend: {
+          display: false // Kesin çözüm
+        }
+      }
+    };
   }
   refreshChart() {
     this.todoService.getStats(this.startDate(), this.endDate()).subscribe({
