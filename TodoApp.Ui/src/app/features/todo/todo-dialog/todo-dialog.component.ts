@@ -25,11 +25,8 @@ import { Todo } from '../../../models/todo.model';
   templateUrl: './todo-dialog.component.html',
 })
 export class TodoDialogComponent implements OnInit {
-  // Verileri Input ile alıyoruz
   @Input() todo: any = {};
   @Input() isEditMode: boolean = false;
-
-  // İşlemleri Output ile dışarı salıyoruz
   @Output() onSave = new EventEmitter<Todo>();
   @Output() onCancel = new EventEmitter<void>();
 

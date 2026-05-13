@@ -23,8 +23,8 @@ export class NotificationService {
   confirm(
   message: string, 
   accept: () => void, 
-  reject?: () => void, // 3. parametre artık fonksiyon
-  header: string = 'Confirmation Required' // Header'ı sona aldık
+  reject?: () => void, 
+  header: string = 'Confirmation Required' 
 ) {
   this.confirmationService.confirm({
     message: message,

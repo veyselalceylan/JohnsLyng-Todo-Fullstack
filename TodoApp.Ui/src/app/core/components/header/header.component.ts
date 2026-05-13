@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
-import { AvatarModule } from 'primeng/avatar'; // PrimeNG Avatar!
+import { AvatarModule } from 'primeng/avatar'; 
 import { AuthService } from '../../services/auth/auth.service';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
