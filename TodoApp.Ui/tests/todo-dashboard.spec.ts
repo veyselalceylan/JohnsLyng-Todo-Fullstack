@@ -22,7 +22,7 @@ test('Todo full workflow - Stable Version', async ({ page }) => {
   // 3. EDIT / COMPLETE TASK
   const row = page.locator('p-table tbody tr', { hasText: taskName });
   await expect(row).toBeVisible();
- await page.waitForTimeout(5000);
+  await page.waitForTimeout(5000);
   await row.locator('button:has(.pi-pencil)').click({ force: true });
   await page.waitForTimeout(1000);
   const dialog = page.locator('.p-dialog').first();
@@ -30,7 +30,13 @@ test('Todo full workflow - Stable Version', async ({ page }) => {
   await page.waitForTimeout(5000);
   await dialog.getByRole('button', { name: /save changes/i }).click({ force: true });
   await page.getByRole('button', { name: /yes/i }).click();
-  // 4. LOGOUT
+
+  //4. DELETE TASK
+  await expect(row).toBeVisible();
+  await page.waitForTimeout(5000);
+  await row.locator('button:has(.pi-trash)').click({ force: true });
+  await page.getByRole('button', { name: /yes/i }).click();
+  // 5. LOGOUT
   await page.locator('.p-avatar').click();
   await page.getByText(/logout/i).click();
 
