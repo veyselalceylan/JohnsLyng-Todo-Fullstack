@@ -19,12 +19,10 @@ public class TodosController : ControllerBase
     }
 
     [HttpGet]
-    [HttpGet]
     public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
     {
         var query = _context.Todos.AsQueryable();
 
-        // @params içindeki property isimlerini küçük harfle çağırıyoruz
         query = @params.sortBy?.ToLower() switch
         {
             "title" => @params.isDescending ? query.OrderByDescending(t => t.title) : query.OrderBy(t => t.title),
@@ -54,21 +52,21 @@ public class TodosController : ControllerBase
     [HttpGet("stats")]
     public async Task<ActionResult<TodoStatsDto>> GetTodoStats([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
-        var start = startDate ?? DateTime.UtcNow.AddDays(-7);
-        var end = endDate ?? DateTime.UtcNow;
+        var start = startDate ?? DateTime.UtcNow;
+        var end = endDate ?? DateTime.UtcNow.AddDays(7);
 
         var todos = await _context.Todos
-            .Where(t => t.CreatedAt >= start && t.CreatedAt <= end)
+            .Where(t => t.deadline >= start && t.deadline <= end) 
             .ToListAsync();
 
         var stats = new TodoStatsDto
         {
             TotalCount = todos.Count,
-            CompletedCount = todos.Count(t => t.IsCompleted),
-            PendingCount = todos.Count(t => !t.IsCompleted),
+            CompletedCount = todos.Count(t => t.isCompleted),
+            PendingCount = todos.Count(t => !t.isCompleted),
             ChartData = new List<int> {
-            todos.Count(t => t.IsCompleted),
-            todos.Count(t => !t.IsCompleted)
+            todos.Count(t => t.isCompleted),
+            todos.Count(t => !t.isCompleted)
         }
         };
 
@@ -135,12 +133,9 @@ public class TodosController : ControllerBase
 
         var entry = _context.Entry(existingTodo);
         entry.CurrentValues.SetValues(todo);
-
-        // Burası artık küçük harf:
         entry.Property(x => x.id).IsModified = false;
-        entry.Property(x => x.createdAt).IsModified = false; // 'c' küçük oldu
-
-        existingTodo.updatedAt = DateTime.UtcNow; // 'u' küçük oldu
+        entry.Property(x => x.createdAt).IsModified = false;
+        existingTodo.updatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return Ok(existingTodo);

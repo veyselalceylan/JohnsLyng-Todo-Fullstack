@@ -7,7 +7,7 @@ builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200") // Angular'ın adresi
+        policy => policy.WithOrigins("http://localhost:4200") 
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .WithExposedHeaders("X-Total-Count"));
@@ -25,9 +25,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors("AllowAngular");
+app.UseHttpsRedirection();
 app.MapControllers(); 
 
 app.Run();

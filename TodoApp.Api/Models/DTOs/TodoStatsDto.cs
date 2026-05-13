@@ -1,4 +1,4 @@
-namespace ProjeAdin.Models.DTOs // Klasör yolun neyse o
+namespace TodoApp.Api.Models.DTOs 
 {
     public class TodoStatsDto
     {

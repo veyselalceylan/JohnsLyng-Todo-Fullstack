@@ -1,0 +1,58 @@
+<p-panel [toggleable]="true">
+  <ng-template #header>
+    <div class="flex items-center gap-2">
+      <span class="font-bold">Task Analytics</span>
+    </div>
+  </ng-template>
+
+  <div class="card flex justify-content-center" style="height: 250px">
+    @if (data) {
+      <p-chart type="bar" [data]="data" [options]="options" style="width: 100%"></p-chart>
+    } @else {
+      <div class="flex flex-column align-items-center justify-content-center">
+        <i class="pi pi-spin pi-spinner text-2xl"></i>
+        <p>Refreshing Data...</p>
+      </div>
+    }
+  </div>
+  <ng-template #footer>
+  <div class="flex flex-column w-full gap-2">
+    
+    <div class="flex justify-content-between align-items-center w-full">
+      <div class="flex gap-2">
+        <p-datepicker
+          [(ngModel)]="startDate"
+          (onSelect)="refreshChart()"
+          [showIcon]="true"
+          placeholder="Start"
+          [maxDate]="endDate()"
+          [style]="{'width': '135px'}"
+          inputStyleClass="text-xs p-2"
+        />
+        <p-datepicker
+          [(ngModel)]="endDate"
+          (onSelect)="refreshChart()"
+          [showIcon]="true"
+          placeholder="End"
+          [minDate]="startDate()"
+          [style]="{'width': '135px'}"
+          inputStyleClass="text-xs p-2"
+        />
+      </div>
+
+      <p-button
+        icon="pi pi-sync"
+        label="Update"
+        [text]="true"
+        size="small"
+        (click)="refreshChart()"
+      />
+    </div>
+
+    <div class="flex justify-content-end w-full">
+      <span class="text-xs text-surface-400 px-1">Live Backend Data</span>
+    </div>
+
+  </div>
+</ng-template>
+</p-panel>

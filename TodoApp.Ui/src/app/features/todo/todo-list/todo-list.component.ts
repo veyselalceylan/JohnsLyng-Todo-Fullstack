@@ -84,38 +84,37 @@ export class TodoListComponent implements OnInit {
     this.displayDialog = true;
   }
 
- handleSave(todo: Todo) {
-  const message = this.isEditMode 
-    ? 'Are you sure you want to update this task?' 
-    : 'Do you want to add a new task?';
+  handleSave(todo: Todo) {
+    const message = this.isEditMode
+      ? 'Are you sure you want to update this task?'
+      : 'Do you want to add a new task?';
 
-  
-  this.notify.confirm(
-    message,
-    () => {
-      if (this.isEditMode) {
-        this.todoService.updateTodo(todo.id, todo).subscribe({
-          next: () => {
-            this.notify.showSuccess('Task updated successfully');
-            this.displayDialog = false;
-            this.fetchTodos();
-          }
-        });
-      } else {
-        this.todoService.createTodo(todo).subscribe({
-          next: () => {
-            this.notify.showSuccess('New task created successfully');
-            this.displayDialog = false; 
-            this.fetchTodos();
-          }
-        });
-      }
-    },
-    () => {
-      this.notify.showInfo('Operation cancelled');
-    }
-  );
-}
+    this.notify.confirm(
+      message,
+      () => {
+        if (this.isEditMode) {
+          this.todoService.updateTodo(todo.id, todo).subscribe({
+            next: () => {
+              this.notify.showSuccess('Task updated successfully');
+              this.displayDialog = false;
+              this.fetchTodos();
+            },
+          });
+        } else {
+          this.todoService.createTodo(todo).subscribe({
+            next: () => {
+              this.notify.showSuccess('New task created successfully');
+              this.displayDialog = false;
+              this.fetchTodos();
+            },
+          });
+        }
+      },
+      () => {
+        this.notify.showInfo('Operation cancelled');
+      },
+    );
+  }
 
   onLazyLoad(event: any): void {
     this.currentParams = {
@@ -167,10 +166,12 @@ export class TodoListComponent implements OnInit {
     this.todoService.updateTodo(todo.id, updatedTodo).subscribe({
       next: (response) => {
         Object.assign(todo, response);
-        this.notify.showSuccess('Task status updated to ' + (todo.isCompleted ? 'Completed' : 'Pending'));
+        this.notify.showSuccess(
+          'Task status updated to ' + (todo.isCompleted ? 'Completed' : 'Pending'),
+        );
         this.cdr.detectChanges();
       },
-      error: (err) => this.notify.showError('Could not update status')
+      error: (err) => this.notify.showError('Could not update status'),
     });
   }
 

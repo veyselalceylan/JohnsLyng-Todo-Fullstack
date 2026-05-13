@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable, switchMap, tap } from 'rxjs';
 import { Todo } from '../../../models/todo.model';
 import { ITodoService, PaginationParams, TodoResponse } from './todo-service.interface';
 import { environment } from '../../../../environment/environment';
-
+import { TodoStatsDto } from '../../../models/todo-stats.model';
 @Injectable({
   providedIn: 'root',
 })
@@ -44,5 +44,32 @@ export class TodoService implements ITodoService {
     return this.http.delete(`${this.apiUrl}/bulk-delete`, { body: ids });
   }
 
-  
+ getStats(start: Date, end: Date): Observable<TodoStatsDto> {
+    const params = new HttpParams()
+      .set('startDate', start.toISOString())
+      .set('endDate', end.toISOString());
+
+    return this.http.get<TodoStatsDto>(`${this.apiUrl}/stats`, { params }).pipe(
+        tap(data => console.log('Gelen İstatistikler:', data)) 
+    );
+}
+
+  seedFromLocalJson() {
+    return this.http.get<Todo[]>('data.json').pipe(
+      switchMap((tasks) => {
+        const requests = tasks.map((task) => {
+          const payload = {
+          title: task.title,
+          description: task.description,
+          isCompleted: task.isCompleted,
+          priority: task.priority,
+          deadline: task.deadline ? new Date(task.deadline).toISOString() : null,
+          createdAt: new Date().toISOString()
+        };
+          return this.http.post<Todo>(this.apiUrl, payload);
+        });
+        return forkJoin(requests);
+      })
+    );
+  }
 }
