@@ -13,23 +13,17 @@ test('Todo full workflow stable', async ({ page }) => {
 
   await expect(page).toHaveURL(/todos/);
 
-  // wait app ready
   await expect(page.locator('p-table')).toBeVisible();
 
-  // clear possible overlays
   await page.waitForTimeout(500);
 
-  // -------------------------
-  // DEMO DATA
-  // -------------------------
+  // add demo data if no tasks exist, to ensure test stability
   await page.getByRole('button', { name: /add demo data/i }).click();
   await page.getByRole('button', { name: /yes/i }).click();
 
   await page.waitForTimeout(500);
 
-  // -------------------------
-  // CREATE TASK
-  // -------------------------
+  //crate task
   const taskName = `test-${Date.now()}`;
 
   await page.getByRole('button', { name: /new task/i }).click();
@@ -46,13 +40,11 @@ test('Todo full workflow stable', async ({ page }) => {
   await page.getByRole('button', { name: /create task/i }).click();
   await page.getByRole('button', { name: /yes/i }).click();
 
-  // verify task exists (STRICT SAFE)
+  // verify task exists 
   const row = page.locator('p-table tbody tr', { hasText: taskName });
   await expect(row).toBeVisible();
 
-  // -------------------------
-  // EDIT / COMPLETE TASK
-  // -------------------------
+  // editcomplete task
   await page.waitForSelector('.p-datatable-mask', { state: 'detached', timeout: 10000 }).catch(() => {});
   await page.waitForSelector('.p-dialog-mask', { state: 'detached', timeout: 10000 }).catch(() => {});
   await row.first().scrollIntoViewIfNeeded();
@@ -90,9 +82,7 @@ test('Todo full workflow stable', async ({ page }) => {
 
   await page.getByRole('button', { name: /yes/i }).click();
 
-  // -------------------------
-  // FILTER DATE
-  // -------------------------
+  // filter date for chart
   await page.getByRole('button', { name: /choose date/i }).first().click();
 
   await page.getByText('9', { exact: true }).click();
@@ -101,9 +91,6 @@ test('Todo full workflow stable', async ({ page }) => {
   // cleanup overlays again
   await page.waitForTimeout(500);
 
-  // -------------------------
-  // LOGOUT
-  // -------------------------
   // Click avatar (PrimeNG p-avatar) to open profile menu 
   const avatar = page.locator('p-avatar, .p-avatar');
   await expect(avatar.first()).toBeVisible({ timeout: 5000 });
