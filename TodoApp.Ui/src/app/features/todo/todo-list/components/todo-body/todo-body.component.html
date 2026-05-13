@@ -6,7 +6,22 @@
         todo.title
       }}</span>
       @if (todo.description) {
-        <small class="text-secondary mt-1">{{ todo.description }}</small>
+        <small
+          #desc
+          class="text-secondary mt-1 description-truncate"
+          [class.description-full]="desc.getAttribute('data-expanded') === 'true'"
+          (click)="
+            desc.setAttribute(
+              'data-expanded',
+              desc.getAttribute('data-expanded') === 'true' ? 'false' : 'true'
+            )
+          "
+          [pTooltip]="
+            desc.getAttribute('data-expanded') !== 'true' ? 'Click to expand' : 'Click to collapse'
+          "
+        >
+          {{ todo.description }}
+        </small>
       }
     </div>
   </div>
@@ -30,13 +45,12 @@
 </td>
 <td class="text-center">
   <p-tag
-    
     [severity]="todo.isCompleted ? 'success' : 'warn'"
     [value]="todo.isCompleted ? 'Completed' : 'Pending'"
     class="cursor-pointer transition-all active:scale-95"
     [pTooltip]="'Click to change status'"
     tooltipPosition="left"
-    [style]="{ 'cursor': 'pointer' }"
+    [style]="{ cursor: 'pointer' }"
     (click)="toggle.emit(todo)"
   >
   </p-tag>

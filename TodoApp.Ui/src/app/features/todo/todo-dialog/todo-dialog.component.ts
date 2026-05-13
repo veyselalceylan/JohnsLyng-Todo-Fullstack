@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -26,19 +25,18 @@ import { Todo } from '../../../models/todo.model';
   templateUrl: './todo-dialog.component.html',
 })
 export class TodoDialogComponent implements OnInit {
-  private ref = inject(DynamicDialogRef);
-  private config = inject(DynamicDialogConfig);
-  todo: any = {}; 
-  isEditMode: boolean = false;
+  // Verileri Input ile alıyoruz
+  @Input() todo: any = {};
+  @Input() isEditMode: boolean = false;
+
+  // İşlemleri Output ile dışarı salıyoruz
+  @Output() onSave = new EventEmitter<Todo>();
+  @Output() onCancel = new EventEmitter<void>();
 
   items: string[] = [];
   allPriorities: string[] = ['Low', 'Medium', 'High'];
 
   ngOnInit(): void {
-    if (this.config.data) {
-      this.todo = { ...this.config.data.todo };
-      this.isEditMode = this.config.data.isEditMode;
-    }
     if (this.todo && this.todo.deadline) {
       this.todo.deadline = new Date(this.todo.deadline);
     }
@@ -48,7 +46,7 @@ export class TodoDialogComponent implements OnInit {
         title: '',
         description: '',
         priority: 'Medium',
-        isCompleted: false,
+        isCompleted: false, 
         deadline: null,
       };
     }
@@ -65,6 +63,7 @@ export class TodoDialogComponent implements OnInit {
     if (!this.todo.title) return;
 
     let finalTodo: Todo;
+
     if (this.isEditMode) {
       finalTodo = { ...this.todo };
     } else {
@@ -73,10 +72,10 @@ export class TodoDialogComponent implements OnInit {
         isCompleted: false,
       };
     }
-    this.ref.close(finalTodo);
+    this.onSave.emit(finalTodo);
   }
 
   cancel(): void {
-    this.ref.close();
+    this.onCancel.emit();
   }
 }

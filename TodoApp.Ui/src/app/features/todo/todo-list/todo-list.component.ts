@@ -10,18 +10,22 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { finalize } from 'rxjs/operators';
 import { ToolbarModule } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog'; // Eksik olan buydu
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmationService, MessageService } from 'primeng/api';
+
 import { Todo } from '../../../models/todo.model';
 import { TodoService } from '../../../core/services/todo/todo.service';
 import { PaginationParams } from '../../../core/services/todo/todo-service.interface';
+import { NotificationService } from '../../../core/services/utils/utils.service';
 
-// Components
 import { TodoToolbarComponent } from './components/todo-toolbar/todo-toolbar.component';
 import { TodoHeaderComponent } from './components/todo-header/todo-header.component';
 import { TodoBodyComponent } from './components/todo-body/todo-body.component';
 import { TodoLoadingComponent } from './components/todo-loading/todo-loading.component';
 import { TodoEmptymessageComponent } from './components/todo-emptymessage/todo-emptymessage.component';
-import { TodoDialogComponent } from '../todo-dialog/todo-dialog.component'; // Dialog yolunu kontrol et
+import { TodoDialogComponent } from '../todo-dialog/todo-dialog.component';
 
 @Component({
   selector: 'app-todo-list',
@@ -38,6 +42,8 @@ import { TodoDialogComponent } from '../todo-dialog/todo-dialog.component'; // D
     ToolbarModule,
     TooltipModule,
     DialogModule,
+    ToastModule,
+    ConfirmDialogModule,
     TodoToolbarComponent,
     TodoHeaderComponent,
     TodoBodyComponent,
@@ -51,11 +57,11 @@ import { TodoDialogComponent } from '../todo-dialog/todo-dialog.component'; // D
 export class TodoListComponent implements OnInit {
   private todoService = inject(TodoService);
   private cdr = inject(ChangeDetectorRef);
+  private notify = inject(NotificationService);
 
   displayDialog: boolean = false;
   isEditMode: boolean = false;
   selectedTodo: any = {};
-
   todos: Todo[] = [];
   loading: boolean = false;
   hasError: boolean = false;
@@ -78,40 +84,38 @@ export class TodoListComponent implements OnInit {
     this.displayDialog = true;
   }
 
-  handleSave(todoData: Todo) {
-    if (this.isEditMode) {
-      this.updateExistingTodo(todoData.id, todoData);
-    } else {
-      this.createNewTodo(todoData);
+ handleSave(todo: Todo) {
+  const message = this.isEditMode 
+    ? 'Are you sure you want to update this task?' 
+    : 'Do you want to add a new task?';
+
+  
+  this.notify.confirm(
+    message,
+    () => {
+      if (this.isEditMode) {
+        this.todoService.updateTodo(todo.id, todo).subscribe({
+          next: () => {
+            this.notify.showSuccess('Task updated successfully');
+            this.displayDialog = false;
+            this.fetchTodos();
+          }
+        });
+      } else {
+        this.todoService.createTodo(todo).subscribe({
+          next: () => {
+            this.notify.showSuccess('New task created successfully');
+            this.displayDialog = false; 
+            this.fetchTodos();
+          }
+        });
+      }
+    },
+    () => {
+      this.notify.showInfo('Operation cancelled');
     }
-    this.displayDialog = false;
-  }
-
-  private createNewTodo(newTodo: Todo) {
-    this.loading = true;
-    this.todoService.createTodo(newTodo).subscribe({
-      next: () => {
-        this.fetchTodos();
-      },
-      error: (err) => {
-        console.error('Create error:', err);
-        this.loading = false;
-      },
-    });
-  }
-
-  private updateExistingTodo(id: string, updatedTodo: Todo) {
-    this.loading = true;
-    this.todoService.updateTodo(id, updatedTodo).subscribe({
-      next: () => {
-        this.fetchTodos();
-      },
-      error: (err) => {
-        console.error('Update error:', err);
-        this.loading = false;
-      },
-    });
-  }
+  );
+}
 
   onLazyLoad(event: any): void {
     this.currentParams = {
@@ -142,7 +146,6 @@ export class TodoListComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          console.log(res);
           this.todos = res.items || [];
           this.totalRecords = res.totalCount;
         },
@@ -150,7 +153,7 @@ export class TodoListComponent implements OnInit {
           this.hasError = true;
           this.todos = [];
           this.totalRecords = 0;
-          console.error('API Error:', err);
+          this.notify.showError('An error occurred while loading data');
         },
       });
   }
@@ -164,22 +167,27 @@ export class TodoListComponent implements OnInit {
     this.todoService.updateTodo(todo.id, updatedTodo).subscribe({
       next: (response) => {
         Object.assign(todo, response);
+        this.notify.showSuccess('Task status updated to ' + (todo.isCompleted ? 'Completed' : 'Pending'));
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Hata oluştu:', err),
+      error: (err) => this.notify.showError('Could not update status')
     });
   }
 
   deleteTodo(id: string): void {
-    this.deletingId = id;
-    this.todoService.deleteTodo(id).subscribe({
-      next: () => {
-        this.fetchTodos();
-        this.deletingId = null;
-      },
-      error: (err) => {
-        this.deletingId = null;
-      },
+    this.notify.confirm('Are you sure you want to delete this task?', () => {
+      this.deletingId = id;
+      this.todoService.deleteTodo(id).subscribe({
+        next: () => {
+          this.notify.showInfo('Task deleted');
+          this.fetchTodos();
+          this.deletingId = null;
+        },
+        error: (err) => {
+          this.deletingId = null;
+          this.notify.showError('Could not delete task');
+        },
+      });
     });
   }
 
@@ -187,15 +195,19 @@ export class TodoListComponent implements OnInit {
     const ids = this.selectedTodos.map((t) => t.id);
     if (ids.length === 0) return;
 
-    this.loading = true;
-    this.todoService.bulkDelete(ids).subscribe({
-      next: () => {
-        this.selectedTodos = [];
-        this.fetchTodos();
-      },
-      error: (err) => {
-        this.loading = false;
-      },
+    this.notify.confirm(`Are you sure you want to delete ${ids.length} selected tasks?`, () => {
+      this.loading = true;
+      this.todoService.bulkDelete(ids).subscribe({
+        next: () => {
+          this.notify.showSuccess('Selected tasks cleared');
+          this.selectedTodos = [];
+          this.fetchTodos();
+        },
+        error: (err) => {
+          this.loading = false;
+          this.notify.showError('Could not delete selected tasks');
+        },
+      });
     });
   }
 }

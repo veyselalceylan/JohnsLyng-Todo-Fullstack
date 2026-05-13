@@ -4,9 +4,12 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura'; // Aura, Lara veya Nora seçebilirsin
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    MessageService, 
+    ConfirmationService,
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
