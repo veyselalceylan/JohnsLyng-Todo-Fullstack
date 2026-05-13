@@ -27,7 +27,7 @@ import { Todo } from '../../../models/todo.model';
 })
 export class TodoDialogComponent implements OnInit {
   // TodoList'ten (Parent) gelen veriler
-  @Input() todo: any = {}; 
+  @Input() todo: any = {};
   @Input() isEditMode: boolean = false;
 
   // TodoList'e (Parent) gönderilecek olaylar
@@ -50,21 +50,25 @@ export class TodoDialogComponent implements OnInit {
    */
   search(event: any): void {
     const query = event.query.toLowerCase();
-    this.items = this.allPriorities.filter(p => p.toLowerCase().includes(query));
+    this.items = this.allPriorities.filter((p) => p.toLowerCase().includes(query));
   }
 
-  /**
-   * Formu onaylar ve veriyi Parent component'e (TodoList) fırlatır
-   */
   save(): void {
-    if (this.todo.title && this.todo.title.trim()) {
-      this.onSave.emit(this.todo);
+    if (!this.todo.title) return;
+
+    let finalTodo: Todo;
+
+    if (this.isEditMode) {
+      finalTodo = { ...this.todo };
+    } else {
+      finalTodo = {
+        ...this.todo,
+        isCompleted: false,
+      };
     }
+    this.onSave.emit(finalTodo);
   }
 
-  /**
-   * Dialogu kapatması için Parent component'e sinyal gönderir
-   */
   cancel(): void {
     this.onCancel.emit();
   }
