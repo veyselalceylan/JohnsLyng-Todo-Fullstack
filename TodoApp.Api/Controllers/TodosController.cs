@@ -84,26 +84,20 @@ public class TodosController : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateTodo(Guid id, Todo todo)
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<Todo>> UpdateTodo(Guid id, Todo todo)
     {
-        if (id != todo.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-        _context.Entry(todo).State = EntityState.Modified;
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!_context.Todos.Any(e => e.Id == id))
-            {
-                return NotFound();
-            }
-            throw;
-        }
-        return NoContent();
+        var existingTodo = await _context.Todos.FindAsync(id);
+        if (existingTodo == null) return NotFound();
+
+        // Backend modeline sadık kalarak tüm değerleri tek seferde günceller
+        _context.Entry(existingTodo).CurrentValues.SetValues(todo);
+
+        // Sadece manuel kontrol etmek istediğin alanları ezersin
+        existingTodo.UpdatedAt = DateTime.UtcNow;
+        existingTodo.Id = id; // Güvenlik için ID'nin değişmediğinden emin olalım
+
+        await _context.SaveChangesAsync();
+        return Ok(existingTodo);
     }
 }
