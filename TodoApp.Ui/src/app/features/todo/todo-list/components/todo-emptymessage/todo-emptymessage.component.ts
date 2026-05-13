@@ -11,4 +11,5 @@ export class TodoEmptymessageComponent {
   @Input() hasError = false;
   @Input() loading = false;
   @Output() retry = new EventEmitter<void>();
+  @Output() addFirstTask = new EventEmitter<void>();
 }

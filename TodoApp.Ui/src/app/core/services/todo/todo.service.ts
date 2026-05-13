@@ -3,13 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Todo } from '../../../models/todo.model';
 import { ITodoService, PaginationParams, TodoResponse } from './todo-service.interface';
+import { environment } from '../../../../environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TodoService implements ITodoService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:5000/api/todos';
+private apiUrl = `${environment.apiUrl}/todos`;
 
   getTodos(params: PaginationParams): Observable<TodoResponse> {
     let httpParams = new HttpParams()

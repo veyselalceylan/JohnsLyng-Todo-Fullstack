@@ -22,63 +22,60 @@ public class TodosController : ControllerBase
     {
         var query = _context.Todos.AsQueryable();
 
-        query = @params.SortBy?.ToLower() switch
+        // @params içindeki property isimlerini küçük harfle çağırıyoruz
+        query = @params.sortBy?.ToLower() switch
         {
-            "title" => @params.IsDescending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
-            "iscompleted" => @params.IsDescending ? query.OrderByDescending(t => t.IsCompleted) : query.OrderBy(t => t.IsCompleted),
-            "deadline" => @params.IsDescending ? query.OrderByDescending(t => t.Deadline) : query.OrderBy(t => t.Deadline),
-            "priority" => @params.IsDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
-            _ => @params.IsDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt)
+            "title" => @params.isDescending ? query.OrderByDescending(t => t.title) : query.OrderBy(t => t.title),
+            "iscompleted" => @params.isDescending ? query.OrderByDescending(t => t.isCompleted) : query.OrderBy(t => t.isCompleted),
+            "deadline" => @params.isDescending ? query.OrderByDescending(t => t.deadline) : query.OrderBy(t => t.deadline),
+            "priority" => @params.isDescending ? query.OrderByDescending(t => t.priority) : query.OrderBy(t => t.priority),
+            _ => @params.isDescending ? query.OrderByDescending(t => t.createdAt) : query.OrderBy(t => t.createdAt)
         };
 
-        var orderedQuery = query is IOrderedQueryable<Todo> oq
-            ? oq.ThenBy(t => t.Id)
-            : query.OrderBy(t => t.Id);
+        var totalItems = await query.CountAsync();
 
-        var totalItems = await orderedQuery.CountAsync();
-
-        var items = await orderedQuery
-            .Skip((@params.PageNumber - 1) * @params.PageSize)
-            .Take(@params.PageSize)
+        var items = await query
+            .Skip((@params.pageNumber - 1) * @params.pageSize)
+            .Take(@params.pageSize)
             .ToListAsync();
 
         return Ok(new
         {
-            TotalCount = totalItems,
-            @params.PageSize,
-            @params.PageNumber,
-            TotalPages = (int)Math.Ceiling(totalItems / (double)@params.PageSize),
-            Items = items
+            totalCount = totalItems,
+            pageSize = @params.pageSize,
+            pageNumber = @params.pageNumber,
+            totalPages = (int)Math.Ceiling(totalItems / (double)@params.pageSize),
+            items = items
         });
     }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Todo>> GetTodoById(Guid id)
     {
         var todo = await _context.Todos.FindAsync(id);
         if (todo == null)
         {
-            return NotFound(new { Message = $"{id} todo doesnt exist" });
+            return NotFound(new { message = $"{id} todo doesnt exist" });
         }
         return Ok(todo);
     }
+
     [HttpPost]
     public async Task<ActionResult<Todo>> CreateTodo(Todo todo)
     {
-        todo.Id = Guid.NewGuid();
+        todo.id = Guid.NewGuid();
         _context.Todos.Add(todo);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetTodos), new { id = todo.Id }, todo);
+        return CreatedAtAction(nameof(GetTodoById), new { id = todo.id }, todo);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteTodo(Guid id)
     {
         var todo = await _context.Todos.FindAsync(id);
-        if (todo == null)
-        {
-            return NotFound();
-        }
+        if (todo == null) return NotFound();
+
         _context.Todos.Remove(todo);
         await _context.SaveChangesAsync();
         return NoContent();
@@ -89,11 +86,9 @@ public class TodosController : ControllerBase
     {
         if (ids == null || !ids.Any()) return BadRequest("No IDs provided.");
 
-        // Guid kullanıyorsan dönüştürme gerekebilir
         var guidIds = ids.Select(Guid.Parse).ToList();
-
         var todosToDelete = await _context.Todos
-            .Where(t => guidIds.Contains(t.Id))
+            .Where(t => guidIds.Contains(t.id))
             .ToListAsync();
 
         if (!todosToDelete.Any()) return NotFound();
@@ -101,7 +96,7 @@ public class TodosController : ControllerBase
         _context.Todos.RemoveRange(todosToDelete);
         await _context.SaveChangesAsync();
 
-        return Ok(new { Message = $"{todosToDelete.Count} tasks deleted successfully." });
+        return Ok(new { message = $"{todosToDelete.Count} tasks deleted successfully." });
     }
 
     [HttpPut("{id:guid}")]
@@ -110,12 +105,16 @@ public class TodosController : ControllerBase
         var existingTodo = await _context.Todos.FindAsync(id);
         if (existingTodo == null) return NotFound();
 
-        // Backend modeline sadık kalarak tüm değerleri tek seferde günceller
-        _context.Entry(existingTodo).CurrentValues.SetValues(todo);
+        todo.id = id;
 
-        // Sadece manuel kontrol etmek istediğin alanları ezersin
-        existingTodo.UpdatedAt = DateTime.UtcNow;
-        existingTodo.Id = id; // Güvenlik için ID'nin değişmediğinden emin olalım
+        var entry = _context.Entry(existingTodo);
+        entry.CurrentValues.SetValues(todo);
+
+        // Burası artık küçük harf:
+        entry.Property(x => x.id).IsModified = false;
+        entry.Property(x => x.createdAt).IsModified = false; // 'c' küçük oldu
+
+        existingTodo.updatedAt = DateTime.UtcNow; // 'u' küçük oldu
 
         await _context.SaveChangesAsync();
         return Ok(existingTodo);

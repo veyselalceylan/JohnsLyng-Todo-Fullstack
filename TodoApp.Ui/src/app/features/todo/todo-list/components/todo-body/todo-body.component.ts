@@ -5,12 +5,13 @@ import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
-import { Todo } from '../../../../models/todo.model';
+import { TooltipModule } from 'primeng/tooltip';
+import { Todo } from '../../../../../models/todo.model';
 
 @Component({
   selector: '[app-todo-body]',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, CheckboxModule, TagModule, ButtonModule],
+  imports: [CommonModule, FormsModule, TableModule, CheckboxModule, TagModule, ButtonModule, TooltipModule],
   templateUrl: './todo-body.component.html'
 })
 export class TodoBodyComponent {

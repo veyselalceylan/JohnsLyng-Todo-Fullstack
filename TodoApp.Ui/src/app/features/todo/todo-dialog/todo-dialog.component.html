@@ -1,0 +1,78 @@
+<div class="flex flex-column gap-4">
+  <div class="flex flex-column gap-2">
+    <label for="title" class="font-bold text-900 text-sm">Task Title *</label>
+    <input
+      pInputText
+      id="title"
+      [(ngModel)]="todo.title"
+      placeholder="What's the plan?"
+      class="w-full"
+      autocomplete="off"
+    />
+  </div>
+
+  <div class="grid m-0">
+    <div class="col-12 md:col-6 p-0 pr-0 md:pr-3 flex flex-column gap-2">
+      <label class="font-bold text-900 text-sm">Priority</label>
+      <p-autocomplete
+        [(ngModel)]="todo.priority"
+        [dropdown]="true"
+        [suggestions]="items"
+        (completeMethod)="search($event)"
+      />
+    </div>
+
+    <div class="col-12 md:col-6 p-0 mt-3 md:mt-0 flex flex-column gap-2">
+      <label for="deadline" class="font-bold text-900 text-sm">Deadline</label>
+      <p-datepicker
+        [(ngModel)]="todo.deadline"
+        appendTo="body"
+        dateFormat="dd/mm/yy"
+        [showTime]="true"
+        [hourFormat]="'12'"
+        [showIcon]="true"
+        inputId="deadline"
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="description" class="font-bold text-900 text-sm">Description</label>
+    <textarea
+      pInputTextarea
+      id="description"
+      [(ngModel)]="todo.description"
+      rows="4"
+      placeholder="Optional details..."
+      class="w-full"
+      [autoResize]="true"
+    >
+    </textarea>
+  </div>
+
+  @if (isEditMode) {
+    <div class="flex align-items-center gap-2 border-1 border-round border-300 p-2 surface-50">
+      <p-checkbox [(ngModel)]="todo.isCompleted" [binary]="true" inputId="isCompleted">
+      </p-checkbox>
+      <label for="isCompleted" class="cursor-pointer font-medium text-700">Mark as Completed</label>
+    </div>
+  }
+
+  <div class="flex justify-content-end gap-2 mt-4 pt-3 border-top-1 border-200">
+    <p-button
+      label="Cancel"
+      icon="pi pi-times"
+      styleClass="p-button-text p-button-secondary"
+      (onClick)="cancel()"
+    >
+    </p-button>
+    <p-button
+      [label]="isEditMode ? 'Save Changes' : 'Create Task'"
+      [icon]="isEditMode ? 'pi pi-save' : 'pi pi-plus'"
+      [severity]="isEditMode ? 'success' : 'primary'"
+      [disabled]="!todo.title"
+      (onClick)="save()"
+    >
+    </p-button>
+  </div>
+</div>

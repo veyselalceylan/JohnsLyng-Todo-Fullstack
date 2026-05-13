@@ -1,15 +1,19 @@
-using TodoApp.Api.Models;
+namespace TodoApp.Api.Models;
 
 public class PaginationParams
 {
-    private const int MaxPageSize = 50;
-    public int PageNumber {get; set;}= 1;
+    private const int maxPageSize = 50;
+    
+    // Angular'daki isimlendirmelerle birebir aynı (camelCase)
+    public int pageNumber { get; set; } = 1;
+    
     private int _pageSize = 10;
-    public int PageSize
+    public int pageSize
     {
-        get=> _pageSize;
-        set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
+        get => _pageSize;
+        set => _pageSize = (value > maxPageSize) ? maxPageSize : value;
     }
-    public string SortBy { get; set; } = "CreatedAt";
-    public bool IsDescending { get; set; } = true; 
+
+    public string sortBy { get; set; } = "createdAt";
+    public bool isDescending { get; set; } = true; 
 }

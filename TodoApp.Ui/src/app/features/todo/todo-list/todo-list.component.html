@@ -1,17 +1,17 @@
-<div class="p-4 flex justify-content-center">
+<div class="flex justify-content-center">
   <div class="w-full max-w-7xl">
-    
     <app-todo-toolbar
       [selectedCount]="selectedTodos.length"
       [loading]="loading"
       (deleteSelected)="deleteSelectedTodos()"
-      (newTask)="handleNewTask()"
-      (refresh)="fetchTodos()">
+      (newTask)="openDialog()"
+      (refresh)="fetchTodos()"
+    >
     </app-todo-toolbar>
 
     <p-table
       [value]="todos"
-      [(selection)]="selectedTodos" 
+      [(selection)]="selectedTodos"
       dataKey="id"
       [lazy]="true"
       (onLazyLoad)="onLazyLoad($event)"
@@ -22,21 +22,21 @@
       [loading]="loading"
       sortField="createdAt"
       [sortOrder]="-1"
-      styleClass="p-datatable-striped shadow-2 border-round overflow-hidden"
+      class="p-datatable-striped shadow-2 border-round overflow-hidden"
     >
       <ng-template pTemplate="header">
-        <tr app-todo-header></tr> 
+        <tr app-todo-header></tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-todo>
-        <tr 
-          app-todo-body 
-          [todo]="todo" 
+        <tr
+          app-todo-body
+          [todo]="todo"
           [deletingId]="deletingId"
           [pSelectableRow]="todo"
           (toggle)="toggleComplete($event)"
-          (delete)="deleteTodo($event)">
-        </tr>
+          (delete)="deleteTodo($event)"
+        ></tr>
       </ng-template>
 
       <ng-template pTemplate="loadingbody">
@@ -46,14 +46,32 @@
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
-        <tr 
-          app-todo-emptymessage 
-          [hasError]="hasError" 
+        <tr
+          app-todo-emptymessage
+          [hasError]="hasError"
           [loading]="loading"
-          (retry)="fetchTodos()">
-        </tr>
+          (retry)="fetchTodos()"
+          (addFirstTask)="openDialog()"
+        ></tr>
       </ng-template>
-
     </p-table>
   </div>
 </div>
+
+<p-dialog 
+  [(visible)]="displayDialog" 
+  [header]="isEditMode ? 'Edit Task' : 'New Task'" 
+  [modal]="true" 
+  [style]="{ width: '450px' }" 
+  [draggable]="false" 
+  [resizable]="false">
+  
+  @if (displayDialog) {
+    <app-todo-dialog 
+      [todo]="selectedTodo" 
+      [isEditMode]="isEditMode"
+      (onSave)="handleSave($event)" 
+      (onCancel)="displayDialog = false">
+    </app-todo-dialog>
+  }
+</p-dialog>
