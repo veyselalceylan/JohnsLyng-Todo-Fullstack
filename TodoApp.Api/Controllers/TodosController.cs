@@ -17,41 +17,50 @@ public class TodosController : ControllerBase
     }
 
     [HttpGet]
-  [HttpGet]
-public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
-{
-    var query = _context.Todos.AsQueryable();
-
-    query = @params.SortBy?.ToLower() switch
+    [HttpGet]
+    public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
     {
-        "title" => @params.IsDescending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
-        "iscompleted" => @params.IsDescending ? query.OrderByDescending(t => t.IsCompleted) : query.OrderBy(t => t.IsCompleted),
-        "deadline" => @params.IsDescending ? query.OrderByDescending(t => t.Deadline) : query.OrderBy(t => t.Deadline),
-        "priority" => @params.IsDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
-        _ => @params.IsDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt)
-    };
+        var query = _context.Todos.AsQueryable();
 
-    var orderedQuery = query is IOrderedQueryable<Todo> oq 
-        ? oq.ThenBy(t => t.Id) 
-        : query.OrderBy(t => t.Id);
+        query = @params.SortBy?.ToLower() switch
+        {
+            "title" => @params.IsDescending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
+            "iscompleted" => @params.IsDescending ? query.OrderByDescending(t => t.IsCompleted) : query.OrderBy(t => t.IsCompleted),
+            "deadline" => @params.IsDescending ? query.OrderByDescending(t => t.Deadline) : query.OrderBy(t => t.Deadline),
+            "priority" => @params.IsDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
+            _ => @params.IsDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt)
+        };
 
-    var totalItems = await orderedQuery.CountAsync();
+        var orderedQuery = query is IOrderedQueryable<Todo> oq
+            ? oq.ThenBy(t => t.Id)
+            : query.OrderBy(t => t.Id);
 
-    var items = await orderedQuery
-        .Skip((@params.PageNumber - 1) * @params.PageSize)
-        .Take(@params.PageSize)
-        .ToListAsync();
+        var totalItems = await orderedQuery.CountAsync();
 
-    return Ok(new
+        var items = await orderedQuery
+            .Skip((@params.PageNumber - 1) * @params.PageSize)
+            .Take(@params.PageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            TotalCount = totalItems,
+            @params.PageSize,
+            @params.PageNumber,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)@params.PageSize),
+            Items = items
+        });
+    }
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<Todo>> GetTodoById(Guid id)
     {
-        TotalCount = totalItems,
-        @params.PageSize,
-        @params.PageNumber,
-        TotalPages = (int)Math.Ceiling(totalItems / (double)@params.PageSize),
-        Items = items
-    });
-}
-
+        var todo = await _context.Todos.FindAsync(id);
+        if (todo == null)
+        {
+            return NotFound(new { Message = $"{id} todo doesnt exist" });
+        }
+        return Ok(todo);
+    }
     [HttpPost]
     public async Task<ActionResult<Todo>> CreateTodo(Todo todo)
     {
