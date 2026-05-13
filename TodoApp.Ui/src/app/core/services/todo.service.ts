@@ -24,7 +24,7 @@ export class TodoService implements ITodoService {
     }
     return this.http.get<TodoResponse>(this.apiUrl, { params: httpParams });
   }
-getTodoById(id: string): Observable<Todo> {
+  getTodoById(id: string): Observable<Todo> {
     return this.http.get<Todo>(`${this.apiUrl}/${id}`);
   }
 
@@ -32,11 +32,11 @@ getTodoById(id: string): Observable<Todo> {
     return this.http.post<Todo>(this.apiUrl, todo);
   }
 
-  updateTodo(id: string, todo: Partial<Todo>): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, todo);
+  updateTodo(id: string, todo: Partial<Todo>): Observable<Todo> {
+    return this.http.put<Todo>(`${this.apiUrl}/${id}`, todo);
   }
-
-  deleteTodo(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  
+  deleteTodo(id: string): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
   }
 }
