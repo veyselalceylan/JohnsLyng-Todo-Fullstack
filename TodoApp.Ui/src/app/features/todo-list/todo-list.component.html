@@ -1,66 +1,59 @@
 <div class="p-4 flex justify-content-center">
-    <div class="w-full max-w-5xl">
-        
-      
+  <div class="w-full max-w-7xl">
+    
+    <app-todo-toolbar
+      [selectedCount]="selectedTodos.length"
+      [loading]="loading"
+      (deleteSelected)="deleteSelectedTodos()"
+      (newTask)="handleNewTask()"
+      (refresh)="fetchTodos()">
+    </app-todo-toolbar>
 
-        <p-table 
-            [value]="todos" 
-            [paginator]="true" 
-            [rows]="10" 
-            [rowsPerPageOptions]="[ 10, 20]"
-            [loading]="loading" 
-            sortField="createdAt" 
-            [sortOrder]="-1"
-            styleClass="p-datatable-striped shadow-2 border-round overflow-hidden">
-            
-            <ng-template pTemplate="header">
-                <tr>
-                    <th style="width: 3rem"></th>
-                    <!-- pSortableColumn ekleyerek sıralama özelliği verdik -->
-                    <th pSortableColumn="title">Task <p-sortIcon field="title"></p-sortIcon></th>
-                    <th pSortableColumn="createdAt">Date <p-sortIcon field="createdAt"></p-sortIcon></th>
-                    <th pSortableColumn="isCompleted" style="width: 10rem">Status <p-sortIcon field="isCompleted"></p-sortIcon></th>
-                    <th style="width: 4rem"></th>
-                </tr>
-            </ng-template>
+    <p-table
+      [value]="todos"
+      [(selection)]="selectedTodos" 
+      dataKey="id"
+      [lazy]="true"
+      (onLazyLoad)="onLazyLoad($event)"
+      [paginator]="true"
+      [rows]="rows"
+      [totalRecords]="totalRecords"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [loading]="loading"
+      sortField="createdAt"
+      [sortOrder]="-1"
+      styleClass="p-datatable-striped shadow-2 border-round overflow-hidden"
+    >
+      <ng-template pTemplate="header">
+        <tr app-todo-header></tr> 
+      </ng-template>
 
-            <ng-template pTemplate="body" let-todo>
-                <tr>
-                    <td>
-                        <p-checkbox [binary]="true" [ngModel]="todo.isCompleted" (onChange)="toggleComplete(todo)"></p-checkbox>
-                    </td>
-                    <td [class.line-through]="todo.isCompleted" class="font-medium">
-                        {{ todo.title }}
-                    </td>
-                    <td class="text-secondary text-sm">
-                        {{ todo.createdAt | date:'dd.MM.yyyy HH:mm' }}
-                    </td>
-                    <td>
-                        <p-tag 
-                            [severity]="todo.isCompleted ? 'success' : 'warn'" 
-                            [value]="todo.isCompleted ? 'Completed' : 'Pending'">
-                        </p-tag>
-                    </td>
-                    <td>
-                        <p-button 
-                            icon="pi pi-trash" 
-                            [rounded]="true" 
-                            [text]="true" 
-                            severity="danger" 
-                            (onClick)="deleteTodo(todo.id)">
-                        </p-button>
-                    </td>
-                </tr>
-            </ng-template>
+      <ng-template pTemplate="body" let-todo>
+        <tr 
+          app-todo-body 
+          [todo]="todo" 
+          [deletingId]="deletingId"
+          [pSelectableRow]="todo"
+          (toggle)="toggleComplete($event)"
+          (delete)="deleteTodo($event)">
+        </tr>
+      </ng-template>
 
-            <!-- Liste Boşsa -->
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td colspan="5" class="text-center p-5 text-secondary">
-                        No tasks yet. Let's add one!
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
-    </div>
+      <ng-template pTemplate="loadingbody">
+        @for (i of [1, 2, 3, 4, 5]; track $index) {
+          <tr app-todo-loading></tr>
+        }
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr 
+          app-todo-emptymessage 
+          [hasError]="hasError" 
+          [loading]="loading"
+          (retry)="fetchTodos()">
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
 </div>

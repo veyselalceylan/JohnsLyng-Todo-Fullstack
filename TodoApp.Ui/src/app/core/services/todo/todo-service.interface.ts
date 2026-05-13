@@ -21,4 +21,5 @@ export interface ITodoService {
   createTodo(todo: Todo): Observable<Todo>;
   updateTodo(id: string, todo: Partial<Todo>): Observable<Todo>;
   deleteTodo(id: string): Observable<string>;
+  bulkDelete(ids: string[]): Observable<void>;
 }

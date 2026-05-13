@@ -1,0 +1,22 @@
+<td><p-tableCheckbox [value]="todo"></p-tableCheckbox></td>
+<td>
+  <div class="flex align-items-center gap-3">
+    <p-checkbox [binary]="true" [ngModel]="todo.isCompleted" (onChange)="toggle.emit(todo)" (click)="$event.stopPropagation()"></p-checkbox>
+    <div class="flex flex-column">
+      <span [class.line-through]="todo.isCompleted" class="font-medium text-900">{{ todo.title }}</span>
+      @if (todo.description) { <small class="text-secondary mt-1">{{ todo.description }}</small> }
+    </div>
+  </div>
+</td>
+<td><p-tag [severity]="getPrioritySeverity(todo.priority)" [value]="todo.priority" [rounded]="true"></p-tag></td>
+<td class="text-sm"><i class="pi pi-clock mr-1 text-xs"></i>{{ todo.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+<td class="text-secondary text-sm">
+  @if (todo.deadline) { <i class="pi pi-calendar mr-1 text-xs"></i>{{ todo.deadline | date: 'dd.MM.yyyy HH:mm' }} }
+  @else { <span class="text-400">-</span> }
+</td>
+<td><p-tag [severity]="todo.isCompleted ? 'success' : 'warn'" [value]="todo.isCompleted ? 'Completed' : 'Pending'"></p-tag></td>
+<td>
+  <p-button [icon]="deletingId === todo.id ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" 
+            [disabled]="deletingId === todo.id" [rounded]="true" [text]="true" severity="danger" 
+            (onClick)="delete.emit(todo.id)"></p-button>
+</td>

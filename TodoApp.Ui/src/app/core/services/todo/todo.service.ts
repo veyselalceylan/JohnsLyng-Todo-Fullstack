@@ -39,4 +39,7 @@ export class TodoService implements ITodoService {
   deleteTodo(id: string): Observable<string> {
     return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
   }
+  bulkDelete(ids: string[]): Observable<any> {
+  return this.http.delete(`${this.apiUrl}/bulk-delete`, { body: ids });
+}
 }

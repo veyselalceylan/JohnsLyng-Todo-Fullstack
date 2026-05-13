@@ -84,6 +84,26 @@ public class TodosController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("bulk-delete")]
+    public async Task<IActionResult> BulkDelete([FromBody] List<string> ids)
+    {
+        if (ids == null || !ids.Any()) return BadRequest("No IDs provided.");
+
+        // Guid kullanıyorsan dönüştürme gerekebilir
+        var guidIds = ids.Select(Guid.Parse).ToList();
+
+        var todosToDelete = await _context.Todos
+            .Where(t => guidIds.Contains(t.Id))
+            .ToListAsync();
+
+        if (!todosToDelete.Any()) return NotFound();
+
+        _context.Todos.RemoveRange(todosToDelete);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = $"{todosToDelete.Count} tasks deleted successfully." });
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Todo>> UpdateTodo(Guid id, Todo todo)
     {
