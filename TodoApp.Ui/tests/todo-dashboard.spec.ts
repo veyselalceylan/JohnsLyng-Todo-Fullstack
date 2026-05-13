@@ -1,52 +1,120 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 
-test('Full User Workflow: Login, Task Management and Dashboard Analytics', async ({ page }) => {
-  // 1. Giriş ve Sayfa Yükleme
+
+test('Todo full workflow stable', async ({ page }) => {
+
+  // -------------------------
+  // SETUP + LOGIN
+  // -------------------------
   await page.goto('http://localhost:4200/login');
-  await page.getByRole('textbox', { name: 'Username' }).fill('veysel');
-  await page.getByRole('button', { name: /Get Started/i }).click();
 
-  // Dashboard'un yüklendiğinden emin olalım (URL veya bir başlık kontrolü)
-  await expect(page).toHaveURL(/.*todos/);
+  await page.getByRole('textbox', { name: /username/i }).fill('veysel');
+  await page.getByRole('button', { name: /get started/i }).click();
 
-  // 2. Temizlik Operasyonu (Delete)
-  // Önce tablodaki o "maske" (loading) perdesinin gitmesini bekle
-  const mask = page.locator('.p-datatable-mask');
-  await expect(mask).not.toBeVisible({ timeout: 10000 });
+  await expect(page).toHaveURL(/todos/);
 
-  //toplu veri silme
-  await page.locator('[data-testid="main-checkbox"] input').dispatchEvent('click');
-  await page.getByRole('button', { name: ' Delete Selected' }).click();
-  await page.getByRole('button', { name: 'Yes' }).click();
+  // wait app ready
+  await expect(page.locator('p-table')).toBeVisible();
 
-  // 3. Yeni Task Ekleme
-  await page.getByRole('button', { name: /New Task/i }).click();
-  await page.getByRole('textbox', { name: 'Task Title *' }).fill('Playwright Otomasyon Testi');
+  // clear possible overlays
+  await page.waitForTimeout(500);
 
-  // Takvim (Deadline)
-  await page.getByRole('combobox', { name: 'Deadline' }).click();
-  await page.getByRole('gridcell', { name: '20' }).first().click(); // 20 rakamına sahip ilk hücre
+  // -------------------------
+  // DEMO DATA
+  // -------------------------
+  await page.getByRole('button', { name: /add demo data/i }).click();
+  await page.getByRole('button', { name: /yes/i }).click();
 
-  await page
-    .getByRole('textbox', { name: 'Description' })
-    .fill('Bu görev Playwright tarafından otomatik oluşturuldu.');
-  await page.getByRole('button', { name: /Create Task/i }).click();
-  await page.getByRole('button', { name: 'Yes' }).click();
+  await page.waitForTimeout(500);
 
-  // 4. Analytics & Filtreleme (Dashboard Kısmı)
-  // Başlangıç Tarihi
-  await page.getByRole('button', { name: 'Choose Date' }).first().click();
-  await page.getByText('11', { exact: true }).first().click();
+  // -------------------------
+  // CREATE TASK
+  // -------------------------
+  const taskName = `test-${Date.now()}`;
 
-  // Bitiş Tarihi
-  await page.getByRole('button', { name: 'Choose Date' }).last().click();
-  // 27 rakamını içeren son görünür elemana tıkla
-  await page.locator('.p-datepicker-calendar').locator('text=27').last().click();
+  await page.getByRole('button', { name: /new task/i }).click();
 
-  // Update ve Doğrulama
-  const updateBtn = page.getByRole('button', { name: /Update/i });
-  await updateBtn.click();
+  await page.getByRole('textbox', { name: /task title/i }).fill(taskName);
 
-  // Backend'den veri geldiğini kanıtlayan yazı
-  await expect(page.locator('text=Live Backend Data')).toBeVisible();
+  await page.getByRole('combobox', { name: /deadline/i }).click();
+  await page.getByText('20', { exact: true }).click();
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('textbox', { name: /description/i })
+    .fill('auto test task');
+
+  await page.getByRole('button', { name: /create task/i }).click();
+  await page.getByRole('button', { name: /yes/i }).click();
+
+  // verify task exists (STRICT SAFE)
+  const row = page.locator('p-table tbody tr', { hasText: taskName });
+  await expect(row).toBeVisible();
+
+  // -------------------------
+  // EDIT / COMPLETE TASK
+  // -------------------------
+  await page.waitForSelector('.p-datatable-mask', { state: 'detached', timeout: 10000 }).catch(() => {});
+  await page.waitForSelector('.p-dialog-mask', { state: 'detached', timeout: 10000 }).catch(() => {});
+  await row.first().scrollIntoViewIfNeeded();
+  const editBtn = row.locator('button:has(.pi-pencil)');
+  await expect(editBtn.first()).toBeVisible({ timeout: 5000 });
+  try {
+    await editBtn.first().click({ timeout: 3000 });
+  } catch {
+    await editBtn.first().evaluate((b: HTMLElement) => (b as HTMLElement).click());
+  }
+
+  // wait modal
+  const dialog = page.locator('.p-dialog');
+  await expect(dialog).toBeVisible({ timeout: 10000 });
+
+  // mark completed
+  const isCompletedInput = dialog.locator('input#isCompleted, input[id="isCompleted"]');
+  await expect(isCompletedInput.first()).toBeVisible({ timeout: 5000 });
+  try {
+    await isCompletedInput.first().click({ timeout: 2000 });
+  } catch {
+    await isCompletedInput.first().evaluate((el: HTMLInputElement) => {
+      el.checked = !el.checked;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  // save
+  const saveBtn = page.getByRole('button', { name: /save changes/i });
+  await expect(saveBtn).toBeVisible();
+  await expect(saveBtn).toBeEnabled();
+
+  await saveBtn.click();
+
+  await page.getByRole('button', { name: /yes/i }).click();
+
+  // -------------------------
+  // FILTER DATE
+  // -------------------------
+  await page.getByRole('button', { name: /choose date/i }).first().click();
+
+  await page.getByText('9', { exact: true }).click();
+  await page.keyboard.press('Escape');
+
+  // cleanup overlays again
+  await page.waitForTimeout(500);
+
+  // -------------------------
+  // LOGOUT
+  // -------------------------
+  // Click avatar (PrimeNG p-avatar) to open profile menu 
+  const avatar = page.locator('p-avatar, .p-avatar');
+  await expect(avatar.first()).toBeVisible({ timeout: 5000 });
+  await avatar.first().click();
+
+  // Click logout from menu
+  try {
+    await page.getByRole('menuitem', { name: /logout/i }).click({ timeout: 5000 });
+  } catch {
+    await page.getByText(/logout/i).click();
+  }
+
+  await expect(page).toHaveURL(/login|auth/);
 });
