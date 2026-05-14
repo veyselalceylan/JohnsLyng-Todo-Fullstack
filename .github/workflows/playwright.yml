@@ -22,7 +22,7 @@ jobs:
 
       - name: Install UI deps
         working-directory: TodoApp.Ui
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Restore API
         working-directory: TodoApp.Api
