@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { TodoService } from '../../../core/services/todo/todo.service';
 import { ChartModule } from 'primeng/chart';
 import { CommonModule } from '@angular/common';
@@ -24,17 +24,22 @@ import { FormsModule } from '@angular/forms';
 })
 export class TodoChartComponent {
   private todoService = inject(TodoService);
-
+  private cdr = inject(ChangeDetectorRef);
   // Using signals for dates to keep the UI reactive when a user picks a new range.
   startDate = signal<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   endDate = signal<Date>(new Date());
-  
+
   data: any;
   options: any;
 
   ngOnInit() {
-    this.refreshChart();
     this.initOptions();
+    this.refreshChart();
+    this.todoService.todoUpdated$.subscribe(() => {
+      setTimeout(() => {
+        this.refreshChart();
+      });
+    });
   }
 
   /**
@@ -47,9 +52,9 @@ export class TodoChartComponent {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false // Clean look, handling labels manually or via tooltips
-        }
-      }
+          display: false, // Clean look, handling labels manually or via tooltips
+        },
+      },
     };
   }
 
@@ -69,6 +74,7 @@ export class TodoChartComponent {
             },
           ],
         };
+        this.cdr.detectChanges();
       },
     });
   }

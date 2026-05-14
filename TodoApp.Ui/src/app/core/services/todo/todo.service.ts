@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { forkJoin, Observable, switchMap, tap } from 'rxjs';
+import { forkJoin, Observable, Subject, switchMap, tap } from 'rxjs';
 import { Todo } from '../../../models/todo.model';
 import { ITodoService, PaginationParams, TodoResponse } from './todo-service.interface';
 import { environment } from '../../../../environment/environment';
@@ -12,10 +12,11 @@ import { TodoStatsDto } from '../../../models/todo-stats.model';
 export class TodoService implements ITodoService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/todos`;
-
+  private todoUpdatedSource = new Subject<void>();
+  todoUpdated$ = this.todoUpdatedSource.asObservable();
   /**
-   * Why Observable instead of Promise/await? 
-   * Angular's HttpClient is built on RxJS. Observables are more powerful for streams, 
+   * Why Observable instead of Promise/await?
+   * Angular's HttpClient is built on RxJS. Observables are more powerful for streams,
    * allowing features like cancellation, retries, and easy mapping that 'await' doesn't handle natively.
    */
   getTodos(params: PaginationParams): Observable<TodoResponse> {
@@ -30,6 +31,10 @@ export class TodoService implements ITodoService {
       httpParams = httpParams.set('isDescending', params.isDescending.toString());
     }
     return this.http.get<TodoResponse>(this.apiUrl, { params: httpParams });
+  }
+
+  notifyTodoChanged() {
+    this.todoUpdatedSource.next();
   }
 
   getTodoById(id: string): Observable<Todo> {
@@ -59,9 +64,9 @@ export class TodoService implements ITodoService {
       .set('startDate', start.toISOString())
       .set('endDate', end.toISOString());
 
-    return this.http.get<TodoStatsDto>(`${this.apiUrl}/stats`, { params }).pipe(
-        tap(data => console.log('Stats received:', data)) 
-    );
+    return this.http
+      .get<TodoStatsDto>(`${this.apiUrl}/stats`, { params })
+      .pipe(tap((data) => console.log('Stats received:', data)));
   }
 
   /**
@@ -79,15 +84,15 @@ export class TodoService implements ITodoService {
             isCompleted: task.isCompleted,
             priority: task.priority,
             deadline: task.deadline ? new Date(task.deadline).toISOString() : null,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
           };
           return this.http.post<Todo>(this.apiUrl, payload);
         });
-        
+
         // forkJoin: Executing all requests in parallel and waiting for all of them to complete.
         // This is much faster than 'awaiting' each request one by one.
         return forkJoin(requests);
-      })
+      }),
     );
   }
 }

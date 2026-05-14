@@ -158,6 +158,7 @@ export class TodoListComponent implements OnInit {
         next: (res: any) => {
           this.todos = res.items || [];
           this.totalRecords = res.totalCount;
+          this.todoService.notifyTodoChanged();
         },
         error: (err) => {
           this.hasError = true;
