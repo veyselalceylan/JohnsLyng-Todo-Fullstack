@@ -17,7 +17,10 @@ jobs:
 
     - name: Install Frontend Dependencies
       working-directory: TodoApp.Ui
-      run: npm install --legacy-peer-deps
+      run: |
+        # Hem install yapıyoruz hem de eksik olan paketi zorla ekliyoruz
+        npm install --legacy-peer-deps
+        npm install @angular/animations@21.2.12 --save --legacy-peer-deps
         
     - name: Install Playwright Browsers
       working-directory: TodoApp.Ui
@@ -25,6 +28,4 @@ jobs:
 
     - name: Run Playwright Tests
       working-directory: TodoApp.Ui
-      # '--network-timeout' ve Angular'ı bekleme mantığı eklendi
-      run: |
-        npx playwright test
+      run: npx playwright test
