@@ -40,24 +40,22 @@ jobs:
         working-directory: TodoApp.Ui
         run: npx playwright install --with-deps
 
-      # START API (NO & → foreground)
+      # START API (BACKGROUND)
       - name: Start API
         working-directory: TodoApp.Api
-        run: dotnet run --urls http://127.0.0.1:5000
+        run: dotnet run --urls http://127.0.0.1:5000 &
 
-      # START UI (NO & → foreground)
+      # START UI (BACKGROUND)
       - name: Start UI
         working-directory: TodoApp.Ui
-        run: npm start -- --host 0.0.0.0 --poll=2000
+        run: npm start -- --host 0.0.0.0 --poll=2000 &
 
-      # WAIT (separate, safe)
-      - name: Wait for API
-        run: npx wait-on http://127.0.0.1:5000 --timeout 120000
+      # WAIT FOR BOTH
+      - name: Wait for services
+        working-directory: TodoApp.Ui
+        run: npx wait-on http://127.0.0.1:5000 http://127.0.0.1:4200 --timeout 120000
 
-      - name: Wait for UI
-        run: npx wait-on http://127.0.0.1:4200 --timeout 120000
-
-      # TEST
+      # RUN TESTS
       - name: Run tests
         working-directory: TodoApp.Ui
         run: npx playwright test
