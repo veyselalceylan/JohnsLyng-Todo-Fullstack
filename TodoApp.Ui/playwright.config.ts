@@ -13,11 +13,11 @@ export default defineConfig({
   },
 
   webServer: [
-    {
-      command: '/usr/local/share/dotnet/dotnet run --urls "http://127.0.0.1:5005"',
-      url: 'http://127.0.0.1:5005/swagger/index.html',
+    { 
+      command: 'dotnet run --urls "http://localhost:5005"',
+      url: 'http://localhost:5005/swagger/index.html',
       reuseExistingServer: !process.env.CI,
-      cwd: '../TodoApp.Api', // Klasör yolunun doğruluğundan emin ol
+      cwd: '../TodoApp.Api',
     },
     {
       command: 'npm start',
