@@ -9,7 +9,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Todo } from '../../../../../models/todo.model';
 
 @Component({
-  selector: '[app-todo-body]',
+  // Attribute selector helps to keep the table structure (tr) valid.
+  selector: '[app-todo-body]', 
   standalone: true,
   imports: [
     CommonModule,
@@ -30,6 +31,7 @@ export class TodoBodyComponent {
   @Output() delete = new EventEmitter<string>();
   @Output() edit = new EventEmitter<Todo>();
 
+  // Mapping priorities to PrimeNG's severity colors for better visual feedback.
   getPrioritySeverity(priority: string): any {
     switch (priority?.toLowerCase()) {
       case 'high':
@@ -42,6 +44,11 @@ export class TodoBodyComponent {
         return 'secondary';
     }
   }
+
+  /**
+   * Deadline Check: Highlighting tasks that are due today to catch the user's eye.
+   * UX detail: We only care about this if the task is not already completed.
+   */
   isToday(date: any): boolean {
     if (!date) return false;
     const deadline = new Date(date);

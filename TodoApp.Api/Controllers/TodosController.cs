@@ -1,15 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Api.Data;
 using TodoApp.Api.Models;
 using TodoApp.Api.Models.DTOs;
-
-=======
-using TodoApp.Api.Data;
-using TodoApp.Api.Models;
-using Microsoft.EntityFrameworkCore;
->>>>>>> origin/feature/backend-todo-controller
 
 namespace TodoApp.Api.Controllers;
 
@@ -19,17 +12,19 @@ public class TodosController : ControllerBase
 {
     private readonly AppDbContext _context;
 
+    // Dependency Injection: Decoupling context management from the controller for better testability.
     public TodosController(AppDbContext context)
     {
         _context = context;
     }
 
-<<<<<<< HEAD
     [HttpGet]
     public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
     {
+        // Using IQueryable to ensure that filtering and sorting happen at the Database level (deferred execution).
         var query = _context.Todos.AsQueryable();
 
+        // Server-side sorting: Efficiently handles large datasets by only fetching required order.
         query = @params.sortBy?.ToLower() switch
         {
             "title" => @params.isDescending ? query.OrderByDescending(t => t.title) : query.OrderBy(t => t.title),
@@ -41,6 +36,7 @@ public class TodosController : ControllerBase
 
         var totalItems = await query.CountAsync();
 
+        // Pagination: Skip/Take pattern implemented to optimize memory usage on the API and client.
         var items = await query
             .Skip((@params.pageNumber - 1) * @params.pageSize)
             .Take(@params.pageSize)
@@ -62,6 +58,7 @@ public class TodosController : ControllerBase
         var start = startDate ?? DateTime.UtcNow;
         var end = endDate ?? DateTime.UtcNow.AddDays(7);
 
+        // Filtering by range: Standard practice for dashboard analytics.
         var todos = await _context.Todos
             .Where(t => t.deadline >= start && t.deadline <= end) 
             .ToListAsync();
@@ -72,9 +69,9 @@ public class TodosController : ControllerBase
             CompletedCount = todos.Count(t => t.isCompleted),
             PendingCount = todos.Count(t => !t.isCompleted),
             ChartData = new List<int> {
-            todos.Count(t => t.isCompleted),
-            todos.Count(t => !t.isCompleted)
-        }
+                todos.Count(t => t.isCompleted),
+                todos.Count(t => !t.isCompleted)
+            }
         };
 
         return Ok(stats);
@@ -83,28 +80,24 @@ public class TodosController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Todo>> GetTodoById(Guid id)
     {
+        // Using FindAsync for optimized primary key lookups.
         var todo = await _context.Todos.FindAsync(id);
         if (todo == null)
         {
             return NotFound(new { message = $"{id} todo doesnt exist" });
         }
         return Ok(todo);
-=======
-   [HttpGet]
-    public async Task<ActionResult<IEnumerable<Todo>>> GetTodos()
-    {
-        return await _context.Todos.ToListAsync();
->>>>>>> origin/feature/backend-todo-controller
     }
 
     [HttpPost]
     public async Task<ActionResult<Todo>> CreateTodo(Todo todo)
     {
-<<<<<<< HEAD
+        // Manual ID assignment to ensure Guid consistency across environments.
         todo.id = Guid.NewGuid();
         _context.Todos.Add(todo);
         await _context.SaveChangesAsync();
 
+        // Following REST standards by returning a 201 Created status with the location header.
         return CreatedAtAction(nameof(GetTodoById), new { id = todo.id }, todo);
     }
 
@@ -114,34 +107,17 @@ public class TodosController : ControllerBase
         var todo = await _context.Todos.FindAsync(id);
         if (todo == null) return NotFound();
 
-=======
-        todo.Id = Guid.NewGuid();
-        _context.Todos.Add(todo);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetTodos), new { id = todo.Id}, todo);
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTodo(Guid id)
-    {
-        var todo = await _context.Todos.FindAsync(id);
-        if(todo == null)
-        {
-            return NotFound();
-        }
->>>>>>> origin/feature/backend-todo-controller
         _context.Todos.Remove(todo);
         await _context.SaveChangesAsync();
-        return NoContent();
+        return NoContent(); // 204 NoContent is the standard for successful DELETE operations.
     }
 
-<<<<<<< HEAD
     [HttpDelete("bulk-delete")]
     public async Task<IActionResult> BulkDelete([FromBody] List<string> ids)
     {
         if (ids == null || !ids.Any()) return BadRequest("No IDs provided.");
 
+        // Validating and parsing Guids for safe database operations.
         var guidIds = ids.Select(Guid.Parse).ToList();
         var todosToDelete = await _context.Todos
             .Where(t => guidIds.Contains(t.id))
@@ -149,6 +125,7 @@ public class TodosController : ControllerBase
 
         if (!todosToDelete.Any()) return NotFound();
 
+        // Using RemoveRange for batch deletion to minimize database roundtrips.
         _context.Todos.RemoveRange(todosToDelete);
         await _context.SaveChangesAsync();
 
@@ -161,38 +138,20 @@ public class TodosController : ControllerBase
         var existingTodo = await _context.Todos.FindAsync(id);
         if (existingTodo == null) return NotFound();
 
+        // Identity Safety: Explicitly preventing the modification of sensitive properties.
         todo.id = id;
-
         var entry = _context.Entry(existingTodo);
+        
+        // Efficient Update: Mapping current values without reloading the entire object graph.
         entry.CurrentValues.SetValues(todo);
+        
+        // Audit Tracking: Ensuring system-generated fields remain immutable during updates.
         entry.Property(x => x.id).IsModified = false;
         entry.Property(x => x.createdAt).IsModified = false;
+        
         existingTodo.updatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return Ok(existingTodo);
-=======
-    [HttpPut("{id}")]
-    public async Task<IActionResult>UpdateTodo(Guid id, Todo todo)
-    {
-        if(id != todo.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-        _context.Entry(todo).State = EntityState.Modified;
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if(!_context.Todos.Any(e => e.Id == id))
-            {
-                return NotFound();
-            }
-            throw;
-        }
-        return NoContent();
->>>>>>> origin/feature/backend-todo-controller
     }
 }

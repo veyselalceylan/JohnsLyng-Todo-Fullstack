@@ -25,6 +25,7 @@ import { Todo } from '../../../models/todo.model';
   templateUrl: './todo-dialog.component.html',
 })
 export class TodoDialogComponent implements OnInit {
+  // Input/Output pattern for clean data flow between parent and child.
   @Input() todo: any = {};
   @Input() isEditMode: boolean = false;
   @Output() onSave = new EventEmitter<Todo>();
@@ -34,10 +35,12 @@ export class TodoDialogComponent implements OnInit {
   allPriorities: string[] = ['Low', 'Medium', 'High'];
 
   ngOnInit(): void {
+    // Ensuring the date is a real Date object for the PrimeNG DatePicker.
     if (this.todo && this.todo.deadline) {
       this.todo.deadline = new Date(this.todo.deadline);
     }
 
+    // Default values for new tasks to avoid 'undefined' errors in the template.
     if (!this.isEditMode) {
       this.todo = {
         title: '',
@@ -49,6 +52,7 @@ export class TodoDialogComponent implements OnInit {
     }
   }
 
+  // Providing a simple autocomplete filter for priority selection.
   search(event: any): void {
     const query = event.query.toLowerCase();
     this.items = this.allPriorities.filter((p) => 
@@ -57,16 +61,17 @@ export class TodoDialogComponent implements OnInit {
   }
 
   save(): void {
-    if (!this.todo.title) return;
+    if (!this.todo.title) return; // Basic validation before emitting.
 
     let finalTodo: Todo;
 
+    // Spreading the object to keep the original data safe (immutability).
     if (this.isEditMode) {
       finalTodo = { ...this.todo };
     } else {
       finalTodo = {
         ...this.todo,
-        isCompleted: false,
+        isCompleted: false, // New tasks are always pending by default.
       };
     }
     this.onSave.emit(finalTodo);

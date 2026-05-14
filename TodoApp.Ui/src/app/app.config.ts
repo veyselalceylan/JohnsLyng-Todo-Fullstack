@@ -10,7 +10,13 @@ import { authInterceptor } from './core/interceptors/auth.interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    /**
+     * Globally injecting the authInterceptor.
+     * Instead of manually adding headers to every service
+     */
     provideHttpClient(withInterceptors([authInterceptor])),
+    
+    // Core PrimeNG services for app-wide toasts and dialogs.
     MessageService, 
     ConfirmationService,
     provideAnimationsAsync(),
