@@ -61,9 +61,19 @@ dlldata.c
 BenchmarkDotNet.Artifacts/
 
 # .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docuser
 project.lock.json
 project.fragment.lock.json
 artifacts/
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
 
 # Tye
 .tye/
@@ -134,7 +144,13 @@ $tf/
 
 # Guidance Automation Toolkit
 *.gpState
-
+# Environment
+.env
+# Node / Angular
+node_modules/
+dist/
+.angular/
+.npm/
 # ReSharper is a .NET coding add-in
 _ReSharper*/
 *.[Rr]e[Ss]harper
