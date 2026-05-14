@@ -6,11 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
-// CORS Configuration: Essential for allowing the Frontend (Angular/Flutter) to communicate with the API.
+// CORS Configuration: Essential for allowing the Frontend (Angular) to communicate with the API.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
-        policy => policy.WithOrigins("http://localhost:4200") 
+        policy => policy.WithOrigins("http://localhost:4200","http://127.0.0.1:4200") 
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         // ExposedHeaders: Allows the client to read custom headers (like pagination metadata).
@@ -34,13 +34,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHttpsRedirection();
 // Routing must be defined before CORS and MapControllers.
 app.UseRouting();
 
 // CORS Middleware: Applied globally to the application.
 app.UseCors("AllowAngular");
 
-app.UseHttpsRedirection();
 
 // Attribute Routing: Maps controller actions to their respective routes.
 app.MapControllers(); 

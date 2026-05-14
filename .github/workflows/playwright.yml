@@ -25,32 +25,32 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # UI install
+      # UI deps
       - name: Install UI deps
         working-directory: TodoApp.Ui
         run: npm ci
 
-      # API restore/build
+      # API build
       - name: Build API
         working-directory: TodoApp.Api
         run: dotnet build
 
-      # PLAYWRIGHT
+      # Playwright install
       - name: Install Playwright
         working-directory: TodoApp.Ui
         run: npx playwright install --with-deps
 
-      # START API (foreground → log görünür)
+      # START API (NO & → foreground)
       - name: Start API
         working-directory: TodoApp.Api
-        run: dotnet run --urls http://127.0.0.1:5000 &
+        run: dotnet run --urls http://127.0.0.1:5000
 
-      # START UI (foreground → log görünür)
+      # START UI (NO & → foreground)
       - name: Start UI
         working-directory: TodoApp.Ui
-        run: npm start -- --host 0.0.0.0 --poll=2000 &
+        run: npm start -- --host 0.0.0.0 --poll=2000
 
-      # WAIT FOR SERVICES
+      # WAIT (separate, safe)
       - name: Wait for API
         run: npx wait-on http://127.0.0.1:5000 --timeout 120000
 
