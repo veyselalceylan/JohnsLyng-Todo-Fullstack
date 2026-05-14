@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-
+test('Debug 403', async ({ request }) => {
+  const response = await request.get('http://127.0.0.1:5000/api/todos/stats');
+  console.log('Backend Status:', response.status());
+  console.log('Backend Body:', await response.text());
+});
 test('Todo full workflow - Stable Version', async ({ page }) => {
   // 1. LOGIN
   await page.goto('http://localhost:4200/login');

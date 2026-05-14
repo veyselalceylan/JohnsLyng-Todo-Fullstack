@@ -5,16 +5,19 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:4200',
+    bypassCSP: true,
     trace: 'on-first-retry',
+    launchOptions: {
+      args: ['--disable-web-security'],
+    },
   },
 
   webServer: [
     {
-      command: 'dotnet run',
-      url: 'http://localhost:5000',
+      command: '/usr/local/share/dotnet/dotnet run --urls "http://127.0.0.1:5005"',
+      url: 'http://127.0.0.1:5005/swagger/index.html',
       reuseExistingServer: !process.env.CI,
-      cwd: '../TodoApp.Api',
-      timeout: 120 * 1000,
+      cwd: '../TodoApp.Api', // Klasör yolunun doğruluğundan emin ol
     },
     {
       command: 'npm start',
