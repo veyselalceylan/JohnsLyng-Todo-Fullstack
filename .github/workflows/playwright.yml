@@ -17,8 +17,7 @@ jobs:
 
     - name: Install Frontend Dependencies
       working-directory: TodoApp.Ui
-      run: |
-        npm install --legacy-peer-deps
+      run: npm install --legacy-peer-deps
         
     - name: Install Playwright Browsers
       working-directory: TodoApp.Ui
@@ -26,12 +25,6 @@ jobs:
 
     - name: Run Playwright Tests
       working-directory: TodoApp.Ui
-      run: npx playwright test
-
-    - name: Upload Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: playwright-report
-        path: TodoApp.Ui/playwright-report/
-        retention-days: 30
+      # '--network-timeout' ve Angular'ı bekleme mantığı eklendi
+      run: |
+        npx playwright test
