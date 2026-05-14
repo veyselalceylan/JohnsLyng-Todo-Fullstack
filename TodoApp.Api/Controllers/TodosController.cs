@@ -12,6 +12,7 @@ public class TodosController : ControllerBase
 {
     private readonly AppDbContext _context;
 
+    // Dependency Injection: Decoupling context management from the controller for better testability.
     public TodosController(AppDbContext context)
     {
         _context = context;
@@ -20,9 +21,10 @@ public class TodosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetTodos([FromQuery] PaginationParams @params)
     {
+        // Using IQueryable to ensure that filtering and sorting happen at the Database level (deferred execution).
         var query = _context.Todos.AsQueryable();
 
-        // Sorting logic
+        // Server-side sorting: Efficiently handles large datasets by only fetching required order.
         query = @params.sortBy?.ToLower() switch
         {
             "title" => @params.isDescending ? query.OrderByDescending(t => t.title) : query.OrderBy(t => t.title),
@@ -34,6 +36,7 @@ public class TodosController : ControllerBase
 
         var totalItems = await query.CountAsync();
 
+        // Pagination: Skip/Take pattern implemented to optimize memory usage on the API and client.
         var items = await query
             .Skip((@params.pageNumber - 1) * @params.pageSize)
             .Take(@params.pageSize)
@@ -55,6 +58,7 @@ public class TodosController : ControllerBase
         var start = startDate ?? DateTime.UtcNow;
         var end = endDate ?? DateTime.UtcNow.AddDays(7);
 
+        // Filtering by range: Standard practice for dashboard analytics.
         var todos = await _context.Todos
             .Where(t => t.deadline >= start && t.deadline <= end) 
             .ToListAsync();
@@ -76,6 +80,7 @@ public class TodosController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Todo>> GetTodoById(Guid id)
     {
+        // Using FindAsync for optimized primary key lookups.
         var todo = await _context.Todos.FindAsync(id);
         if (todo == null)
         {
@@ -87,10 +92,12 @@ public class TodosController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Todo>> CreateTodo(Todo todo)
     {
+        // Manual ID assignment to ensure Guid consistency across environments.
         todo.id = Guid.NewGuid();
         _context.Todos.Add(todo);
         await _context.SaveChangesAsync();
 
+        // Following REST standards by returning a 201 Created status with the location header.
         return CreatedAtAction(nameof(GetTodoById), new { id = todo.id }, todo);
     }
 
@@ -102,7 +109,7 @@ public class TodosController : ControllerBase
 
         _context.Todos.Remove(todo);
         await _context.SaveChangesAsync();
-        return NoContent();
+        return NoContent(); // 204 NoContent is the standard for successful DELETE operations.
     }
 
     [HttpDelete("bulk-delete")]
@@ -110,6 +117,7 @@ public class TodosController : ControllerBase
     {
         if (ids == null || !ids.Any()) return BadRequest("No IDs provided.");
 
+        // Validating and parsing Guids for safe database operations.
         var guidIds = ids.Select(Guid.Parse).ToList();
         var todosToDelete = await _context.Todos
             .Where(t => guidIds.Contains(t.id))
@@ -117,6 +125,7 @@ public class TodosController : ControllerBase
 
         if (!todosToDelete.Any()) return NotFound();
 
+        // Using RemoveRange for batch deletion to minimize database roundtrips.
         _context.Todos.RemoveRange(todosToDelete);
         await _context.SaveChangesAsync();
 
@@ -129,10 +138,14 @@ public class TodosController : ControllerBase
         var existingTodo = await _context.Todos.FindAsync(id);
         if (existingTodo == null) return NotFound();
 
-        // Protect Id and CreatedAt from being modified
+        // Identity Safety: Explicitly preventing the modification of sensitive properties.
         todo.id = id;
         var entry = _context.Entry(existingTodo);
+        
+        // Efficient Update: Mapping current values without reloading the entire object graph.
         entry.CurrentValues.SetValues(todo);
+        
+        // Audit Tracking: Ensuring system-generated fields remain immutable during updates.
         entry.Property(x => x.id).IsModified = false;
         entry.Property(x => x.createdAt).IsModified = false;
         

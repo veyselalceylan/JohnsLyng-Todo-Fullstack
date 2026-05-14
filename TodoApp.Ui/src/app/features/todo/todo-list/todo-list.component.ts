@@ -69,6 +69,8 @@ export class TodoListComponent implements OnInit {
   rows: number = 5;
   deletingId: string | null = null;
   selectedTodos: Todo[] = [];
+  
+  // Tracking pagination state to sync with server-side logic.
   currentParams: PaginationParams = {
     pageNumber: 1,
     pageSize: 5,
@@ -78,6 +80,10 @@ export class TodoListComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  /**
+   * Dialog Management: Using spread to ensure we don't mutate the 
+   * table data directly until the user hits 'Save'.
+   */
   openDialog(todo?: Todo) {
     this.isEditMode = !!todo;
     this.selectedTodo = todo ? { ...todo } : { title: '', priority: 'Medium', isCompleted: false };
@@ -116,6 +122,10 @@ export class TodoListComponent implements OnInit {
     );
   }
 
+  /**
+   * Lazy Loading: Crucial for performance with large datasets. 
+   * Only fetches what's necessary for the current view.
+   */
   onLazyLoad(event: any): void {
     this.currentParams = {
       pageNumber: event.first / event.rows + 1,
@@ -127,6 +137,7 @@ export class TodoListComponent implements OnInit {
   }
 
   fetchTodos(params?: PaginationParams): void {
+    // Manually triggering CD to catch loading state changes immediately.
     setTimeout(() => {
       this.loading = true;
       this.hasError = false;
@@ -192,6 +203,10 @@ export class TodoListComponent implements OnInit {
     });
   }
 
+  /**
+   * Bulk Operations: Implementing batch deletion to improve UX 
+   * when managing multiple tasks.
+   */
   deleteSelectedTodos(): void {
     const ids = this.selectedTodos.map((t) => t.id);
     if (ids.length === 0) return;

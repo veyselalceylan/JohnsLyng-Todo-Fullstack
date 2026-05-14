@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { AuthService } from '../../core/services/auth/auth.service';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -17,7 +18,12 @@ export class LoginComponent {
   username: string = '';
   private authService = inject(AuthService);
 
+  /**
+   * Handling login: We keep the component lean by delegating the actual 
+   * authentication logic to the AuthService.
+   */
   onLogin() {
+    // Simple validation: Don't allow empty or whitespace-only names.
     if (this.username.trim()) {
       this.authService.login(this.username);
     }
