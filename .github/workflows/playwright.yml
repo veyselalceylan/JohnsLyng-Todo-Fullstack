@@ -20,29 +20,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Install UI deps
         working-directory: TodoApp.Ui
         run: npm ci
-
-      - name: Build API
-        working-directory: TodoApp.Api
-        run: dotnet build
-
-      # START API
-      - name: Start API
-        working-directory: TodoApp.Api
-        run: dotnet run --urls http://127.0.0.1:5000 &
-
-      # START UI
-      - name: Start UI
-        working-directory: TodoApp.Ui
-        run: npm start -- --host 0.0.0.0 --poll=2000 &
-
-      # WAIT BOTH
-      - name: Wait for services
-        run: npx wait-on --timeout 120000 http://127.0.0.1:4200 http://127.0.0.1:5000
 
       - name: Install Playwright
         working-directory: TodoApp.Ui
