@@ -27,20 +27,20 @@ jobs:
 
       # FRONTEND INSTALL
       - name: Install frontend deps
-        working-directory: frontend
+        working-directory: TodoApp.Ui
         run: npm ci
 
       # BACKEND RESTORE
       - name: Restore backend
-        working-directory: backend
+        working-directory: TodoApp.Api
         run: dotnet restore
 
       # PLAYWRIGHT
       - name: Install Playwright
-        working-directory: frontend
+        working-directory: TodoApp.Ui
         run: npx playwright install --with-deps
 
       # TEST
       - name: Run tests
-        working-directory: frontend
+        working-directory: TodoApp.Ui
         run: npx playwright test

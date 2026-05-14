@@ -36,15 +36,12 @@ export default defineConfig({
 
   webServer: [
     {
-      // .NET API
-      command: 'dotnet run --project ../backend/TodoApp.Api.csproj',
+      command: 'dotnet run --project ../TodoApp.Api/TodoApp.Api.csproj',
       url: 'http://127.0.0.1:5000',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
-
     {
-      // Angular app
       command: 'npm start',
       url: 'http://127.0.0.1:4200',
       reuseExistingServer: !process.env.CI,
