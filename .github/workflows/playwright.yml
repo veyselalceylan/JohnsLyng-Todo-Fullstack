@@ -13,34 +13,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # NODE
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
-      # FRONTEND INSTALL
+      # INSTALL UI
       - name: Install frontend deps
         working-directory: TodoApp.Ui
         run: npm ci
 
-      # BACKEND RESTORE
-      - name: Restore backend
+      # BUILD API (opsiyonel ama iyi practice)
+      - name: Build backend
         working-directory: TodoApp.Api
-        run: dotnet restore
+        run: dotnet build
+
+      # START API (LOCAL GİBİ)
+      - name: Start API
+        working-directory: TodoApp.Api
+        run: dotnet run --urls http://127.0.0.1:5000 &
+
+      # START UI (LOCAL GİBİ)
+      - name: Start UI
+        working-directory: TodoApp.Ui
+        run: npm start -- --host 0.0.0.0 &
+
+      # WAIT (çok önemli)
+      - name: Wait for apps
+        run: npx wait-on http://127.0.0.1:4200 http://127.0.0.1:5000
 
       # PLAYWRIGHT
       - name: Install Playwright
         working-directory: TodoApp.Ui
         run: npx playwright install --with-deps
 
-      # TEST
       - name: Run tests
         working-directory: TodoApp.Ui
         run: npx playwright test
