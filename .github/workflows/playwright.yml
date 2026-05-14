@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -21,33 +20,30 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 8.0.x
 
-      # INSTALL UI
-      - name: Install frontend deps
+      - name: Install UI deps
         working-directory: TodoApp.Ui
         run: npm ci
 
-      # BUILD API (opsiyonel ama iyi practice)
-      - name: Build backend
+      - name: Build API
         working-directory: TodoApp.Api
         run: dotnet build
 
-      # START API (LOCAL GİBİ)
+      # START API
       - name: Start API
         working-directory: TodoApp.Api
         run: dotnet run --urls http://127.0.0.1:5000 &
 
-      # START UI (LOCAL GİBİ)
+      # START UI
       - name: Start UI
         working-directory: TodoApp.Ui
-        run: npm start -- --host 0.0.0.0 &
+        run: npm start -- --host 0.0.0.0 --poll=2000 &
 
-      # WAIT (çok önemli)
-      - name: Wait for apps
-        run: npx wait-on http://127.0.0.1:4200 http://127.0.0.1:5000
+      # WAIT BOTH
+      - name: Wait for services
+        run: npx wait-on --timeout 120000 http://127.0.0.1:4200 http://127.0.0.1:5000
 
-      # PLAYWRIGHT
       - name: Install Playwright
         working-directory: TodoApp.Ui
         run: npx playwright install --with-deps
