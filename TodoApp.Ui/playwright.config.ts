@@ -6,12 +6,24 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4200',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
   },
 
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  webServer: [
+    {
+      command: 'dotnet run --urls=http://0.0.0.0:5000',
+      url: 'http://127.0.0.1:5000',
+      reuseExistingServer: !process.env.CI,
+      cwd: '../TodoApp.Api',
+      timeout: 120 * 1000,
+    },
+    {
+      command: 'npm start -- --host 0.0.0.0',
+      url: 'http://127.0.0.1:4200',
+      reuseExistingServer: !process.env.CI,
+      cwd: '.',
+      timeout: 120 * 1000,
+    },
+  ],
 
   projects: [
     {

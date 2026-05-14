@@ -10,52 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # NODE
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # DOTNET
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 8.0.x
 
-      # UI deps
       - name: Install UI deps
         working-directory: TodoApp.Ui
         run: npm ci
 
-      # API build
-      - name: Build API
+      - name: Restore API
         working-directory: TodoApp.Api
-        run: dotnet build
+        run: dotnet restore
 
-      # Playwright install
       - name: Install Playwright
         working-directory: TodoApp.Ui
         run: npx playwright install --with-deps
 
-      # START API (BACKGROUND)
-      - name: Start API
-        working-directory: TodoApp.Api
-        run: dotnet run --urls http://127.0.0.1:5000 &
-
-      # START UI (BACKGROUND)
-      - name: Start UI
-        working-directory: TodoApp.Ui
-        run: npm start -- --host 0.0.0.0 --poll=2000 &
-
-      # WAIT FOR BOTH
-      - name: Wait for services
-        working-directory: TodoApp.Ui
-        run: npx wait-on http://127.0.0.1:5000 http://127.0.0.1:4200 --timeout 120000
-
-      # RUN TESTS
       - name: Run tests
         working-directory: TodoApp.Ui
         run: npx playwright test
