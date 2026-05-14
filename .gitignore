@@ -63,6 +63,7 @@ BenchmarkDotNet.Artifacts/
 # .NET
 bin/
 obj/
+.vs/
 *.user
 *.userosscache
 *.sln.docuser
@@ -146,11 +147,12 @@ $tf/
 *.gpState
 # Environment
 .env
-# Node / Angular
-node_modules/
-dist/
-.angular/
+# Angular / Node
+**/node_modules/
+**/dist/
+**/.angular/
 .npm/
+npm-debug.log*
 # ReSharper is a .NET coding add-in
 _ReSharper*/
 *.[Rr]e[Ss]harper
@@ -496,3 +498,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
